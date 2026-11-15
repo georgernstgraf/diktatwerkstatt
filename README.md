@@ -43,7 +43,12 @@ ohne laufende Anwendung testbar.
 | [CONTEXT.md](CONTEXT.md) | Vokabular — was die Wörter hier genau bedeuten |
 | [docs/ai/DOMAIN.md](docs/ai/DOMAIN.md) | Tabellen, Invarianten, Zustandsmaschine |
 | [docs/ai/DECISIONS.md](docs/ai/DECISIONS.md) | getroffene Entscheidungen mit Begründung |
+| [docs/ai/HANDOFF.md](docs/ai/HANDOFF.md) | **wo die nächste Sitzung anfängt** |
+| [docs/ai/STATE.md](docs/ai/STATE.md) | was existiert und was nicht |
 | [AGENTS.md](AGENTS.md) | Arbeitsregeln für dieses Repository |
+
+Der Einstieg für die nächste Sitzung ist
+[docs/ai/HANDOFF.md](docs/ai/HANDOFF.md): erst Epic #3 ausgrillen, dann Spike #1.
 
 ## Verwandte Projekte
 
