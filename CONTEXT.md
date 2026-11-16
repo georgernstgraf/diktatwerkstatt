@@ -3,7 +3,7 @@ type: Glossary
 title: Vokabular
 description: Was die Wörter in diesem Repository genau bedeuten.
 tags: [wissensbasis, vokabular]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-16T05:04:02Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:08:40Z }
 status: stable
 ---
 
@@ -27,7 +27,9 @@ trägt ihn hier ein.
 | **Auswahl** | Das Paar aus gewähltem System- und gewähltem User-Prompt, mit dem der nächste Aufruf arbeitet. |
 | **Prompt anwenden** | Die Auswahl auf das rohe Transkript anwenden. Schreibt das polierte Transkript und legt es in die Zwischenablage. |
 | **FIFO** | Die letzten N Diktate, N aus der Konfiguration. Kommt eines hinzu, fällt das älteste samt Arbeitsverzeichnis heraus. |
-| **Zielanwendung** | Das Programm, in das eingefügt wird: Word, Google Docs, Notepad, ein Terminal. |
+| **Zielanwendung** | Das Programm, in das der Nutzer den Text einfügt: Word, Google Docs, Notepad, ein Terminal. |
+| **Einfügen** | Das einmalige Senden von Strg+V nach dem Abschluss eines Diktats. Nie bei **Prompt anwenden**. Steht in `insert_after_dictation` (`never`, `same_window`, `always`). |
+| **Lieferung** | Das Schreiben des Ergebnisses in die Zwischenablage: `CF_HTML` und `CF_UNICODETEXT` plus Ausschlussformate. Immer, unabhängig vom Einfügen; die Zwischenablage behält den Text. |
 | **Zwischenablage** | Die Windows-Zwischenablage. Sie ist die einzige Schnittstelle zur Zielanwendung. |
 | **Fast Path** | Hotkey → Audio → Fragmente → STT → rohes Transkript. Läuft ohne Webview und ohne JavaScript. |
 | **Workbench** | Das Fenster: Reiter „rohes Transkript" und „poliertes Transkript", Prompt-Auswahl, **Prompt anwenden**. |

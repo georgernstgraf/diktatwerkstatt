@@ -3,13 +3,36 @@ type: Decisions
 title: Entscheidungen
 description: Getroffene Architektur- und Produktentscheidungen mit Begründung.
 tags: [entscheidungen, architektur]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-16T05:04:02Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:08:40Z }
 status: stable
 ---
 
 # Entscheidungen
 
 Neueste oben. Jeder Eintrag nennt Entscheidung, Grund und verworfene Alternative.
+
+## 2026-11-16 — Einfügen ist eine Einstellung, die Zwischenablage bleibt das Ergebnis
+
+**Entscheidung:** Nach dem Abschluss eines Diktats darf die App **einmal**
+Strg+V senden. Ob sie es tut, steht in `config.json` als
+`insert_after_dictation` mit `never`, `same_window` (Default) und `always`.
+Bei `same_window` wird nur eingefügt, wenn das Vordergrundfenster beim
+Abschluss dasselbe ist wie beim Einfügen; es wird nie ein Fenster reaktiviert.
+**Prompt anwenden** fügt nie ein. Die Zwischenablage wird in jedem Fall
+geschrieben und behält den Text.
+**Grund:** Handys Bedienung spart genau einen Tastendruck; der Preis ist die
+Verantwortung für den Fokus. Ein 90-Minuten-Protokoll darf nicht in das Fenster
+fallen, das zufällig vorn ist. Weil die Zwischenablage das Ergebnis ist und den
+Text behält, ist ein gescheitertes Einfügen folgenlos — der Nutzer drückt
+Strg+V. Deshalb braucht es weder UIPI-Prüfung noch Meldung noch ein
+Zurückholen des Zielfensters.
+**Verworfen:** nie einfügen (kostet einen Tastendruck ohne Gegenwert; die
+Atomarität der Zwischenablage verlangt es nicht); immer einfügen (falsches
+Fenster bei langen Diktaten); UIPI-Erkennung mit Meldung (löst ein Problem, das
+nicht existiert, solange der Text in der Zwischenablage liegt); Zielfenster
+reaktivieren (verschiebt den Fokus des Nutzers); Delayed Render,
+Format-Snapshot und Read-Receipt (setzen voraus, dass die alte Zwischenablage
+zurückgelegt wird — tun wir nicht).
 
 ## 2026-11-16 — Korrigieren heißt Hören reparieren
 

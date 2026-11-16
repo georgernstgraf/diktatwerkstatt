@@ -3,7 +3,7 @@ type: Reference
 title: Fallstricke
 description: Hart erarbeitete Fallen aus Audio, STT, Textübergabe und Bedienung — nicht neu entdecken.
 tags: [referenz, fallstricke]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-16T05:11:18Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:08:40Z }
 status: stable
 sources:
   - id: whisper-silence
@@ -98,8 +98,9 @@ in [DOMAIN.md](DOMAIN.md).
   Drittanbieter-Clipboard-Manager halten sich aber nicht zwingend daran.
 - **UIPI scheitert stumm.** Erhöht laufende Ziele erreichen weder Hook noch
   Injection, und `SendInput` meldet den Fehlschlag **nicht** — der Text
-  verschwindet.[^handy-uipi] Deshalb: Integritätsstufe des Vordergrundfensters
-  prüfen und melden.
+  verschwindet.[^handy-uipi] Für uns folgenlos: der Text bleibt in der
+  Zwischenablage. Relevant bleibt es nur für das Schlucken der Leertaste —
+  dort ist der Hook blind.
 - **Google Docs ist ein Canvas.** UI Automation ist wertlos; nur echte
   Tastatur-Events oder ein Paste kommen an.
 
@@ -107,7 +108,9 @@ in [DOMAIN.md](DOMAIN.md).
 
 - **Space darf nur im Zustand `RECORDING` geschluckt werden**, sonst tippt
   niemand mehr Leerzeichen.
-- **Die App fügt nie selbst ein.** Sonst entsteht doppelter Text im fremden
+- **Doppelt einfügen droht nur bei der Wiederholung.** Das erste Einfügen
+  nach einem Diktat ist erlaubt (Einstellung `insert_after_dictation`);
+  **Prompt anwenden** fügt nie ein, sonst steht der zweite Lauf im fremden
   Dokument.
 - **Rohtext nie gewrappt speichern** (Fehler aus `aitranscribe`: `PromptManager`
   wrappt beim Schreiben).

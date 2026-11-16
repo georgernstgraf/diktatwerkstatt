@@ -26,7 +26,9 @@ Kommentar an [#3](https://github.com/georgernstgraf/diktatwerkstatt/issues/3).
 - Kein Cloud-Dienst. Rohtext und Politur bleiben lokal; nur Audio geht an die
   konfigurierte STT-API.
 - Kein Verlauf. Das polierte Transkript ist ein Slot, kein Protokoll.
-- Keine Word-Automation. Die App fügt nie selbst ein.
+- Keine Word-Automation. Ein optionales Strg+V nach dem Diktat ist eine
+  Einstellung (`never`/`same_window`/`always`); die Zwischenablage ist in jedem
+  Fall das Ergebnis und behält den Text.
 
 ## Architektur in einem Bild
 
