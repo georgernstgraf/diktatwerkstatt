@@ -62,8 +62,36 @@ keine Vokabel und keine Invariante an zwei Stellen verschieden definiert ist.
 
 ## Dokumentation
 
-- `docs/ai/` folgt OKF v0.2: Frontmatter mit `type`, `title`, `description`,
-  `tags`, `status`.
+- `docs/ai/` ist ein **OKF-v0.2-Bundle**, nicht nur ein Verzeichnis mit
+  Markdown. Jede Konzeptdatei trägt das Envelope:
+
+  ```yaml
+  ---
+  type: <Konzepttyp>
+  title: <Titel>
+  description: <eine Zeile>
+  tags: [<tag>, ...]
+  generated: { by: <producer>/<version>, at: <ISO-8601-UTC> }
+  status: stable        # draft | stable | deprecated — sonst nichts
+  sources:              # wenn eine Aussage auf externe Quellen zurückgeht
+    - id: <kurzschlüssel>
+      resource: <URL oder Pfad>
+      title: <Kurzbezeichnung>
+  ---
+  ```
+
+  `status` kennt nur `draft`, `stable`, `deprecated` — `active` ist kein
+  OKF-Wert. `generated.by` folgt der Actor-Konvention `<producer>/<version>`
+  (Menschen: `human:<id>`). Behauptungen mit Zahlen oder Zitaten bekommen eine
+  Fußnote, deren Label die `sources[].id` ist; die Belege stehen im
+  Frontmatter, nicht im Fließtext.
+- `docs/ai/index.md` trägt `okf_version: "0.2"` und wird bei jeder neuen oder
+  entfernten Konzeptdatei mitgezogen. `docs/ai/log.md` bekommt bei jeder
+  Änderung einen datumsgruppierten Eintrag (neueste oben).
+- `index.md` und `log.md` sind reservierte Dateinamen und dürfen nicht als
+  Konzeptdatei verwendet werden.
+- `CONTEXT.md` liegt bewusst außerhalb des Bundles (es ist das Glossar des
+  ganzen Repositories) und trägt trotzdem ein Envelope.
 - Neue Begriffe gehören in `CONTEXT.md`, neue Regeln in `docs/ai/DOMAIN.md`,
   neue Entscheidungen nach `docs/ai/DECISIONS.md` — mit verworfener Alternative.
 - Beobachtungen, die diesen Dokumenten widersprechen, werden im selben Commit

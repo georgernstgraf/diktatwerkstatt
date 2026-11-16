@@ -1,3 +1,12 @@
+---
+type: Glossary
+title: Vokabular
+description: Was die Wörter in diesem Repository genau bedeuten.
+tags: [wissensbasis, vokabular]
+generated: { by: opencode/knowledge-persistence, at: 2026-11-16T05:04:02Z }
+status: stable
+---
+
 # CONTEXT — Vokabular
 
 Jedes Wort bedeutet hier genau eine Sache. Wer einen Begriff neu einführt,

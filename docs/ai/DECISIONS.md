@@ -3,8 +3,8 @@ type: Decisions
 title: Entscheidungen
 description: Getroffene Architektur- und Produktentscheidungen mit Begründung.
 tags: [entscheidungen, architektur]
-generated: { by: opencode, at: 2026-11-16T00:00:00Z }
-status: active
+generated: { by: opencode/knowledge-persistence, at: 2026-11-16T05:04:02Z }
+status: stable
 ---
 
 # Entscheidungen

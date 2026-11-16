@@ -3,8 +3,8 @@ type: Handoff
 title: Übergabe
 description: Was die nächste Sitzung zuerst tut, in welcher Reihenfolge, und was schon bekannt ist.
 tags: [wissensbasis, handoff]
-generated: { by: opencode, at: 2026-11-16T00:00:00Z }
-status: active
+generated: { by: opencode/knowledge-persistence, at: 2026-11-16T05:04:02Z }
+status: stable
 ---
 
 # Handoff
