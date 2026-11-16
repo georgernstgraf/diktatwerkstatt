@@ -3,7 +3,7 @@ type: Handoff
 title: Übergabe
 description: Was die nächste Sitzung zuerst tut, in welcher Reihenfolge, und was schon bekannt ist.
 tags: [wissensbasis, handoff]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:08:40Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:51:36Z }
 status: stable
 ---
 
@@ -48,9 +48,9 @@ Fließtext? Davon hängt ab, ob semantisches HTML als Standardweg trägt.
 
 Erkenntnisse danach nach `docs/ai/PITFALLS.md`.
 
-## Schritt 3 — parallel: #4 Domäne und #5 DSP-Port
+## Schritt 3 — parallel: #4 Domäne, #5 DSP-Port, #10 Konverter
 
-Beide brauchen keine Hardware und kein Netz, laufen also auch auf Linux.
+Alle drei brauchen keine Hardware und kein Netz, laufen also auch auf Linux.
 
 - **#4** hat jetzt ein sehr kleines Ziel: `diktat` und `prompt` gemäß
   `DOMAIN.md`, das Arbeitsverzeichnis mit `NNN.wav`/`NNN.txt`, die zehn
@@ -58,6 +58,10 @@ Beide brauchen keine Hardware und kein Netz, laufen also auch auf Linux.
 - **#5** hat einen fertigen Prüfstein: die Tests aus
   `polished-recognition/:core` und `aitranscribe/tests/test_fragmenter.py`. Sie
   werden portiert, nicht neu erfunden.
+- **#10** ist die reine Funktion `deliver(markdown) -> Delivery { html, text }`:
+  constrained Markdown nach `CF_HTML` (Kopfzeile, Byte-Offsets, Umlaute) und
+  `CF_UNICODETEXT`. Neun Testfälle stehen im Issue; das Clipboard-Schreiben
+  bleibt bei #8.
 
 ## Schritt 4 — der Rest
 
@@ -70,19 +74,30 @@ Beide brauchen keine Hardware und kein Netz, laufen also auch auf Linux.
 
 ## Offene Entscheidungen
 
-- **Hotkey und Installer** — zwei der vier Fragen aus
-  [INTEGRATION.md](INTEGRATION.md#offene-entscheidungen) sind noch offen.
-  Einfügen ist entschieden (Einstellung, `same_window` als Default), die
-  Wiederverwendung von `handy-keys`/`handy-recorder` ist im Log verworfen.
+- **Hotkey-Mechanik** — Leertaste/Enter mit eigenem Hook (dann bleiben der
+  Hook-Block in #1 und das Abnahmekriterium „Space im Pausenzustand" in #8)
+  oder ein dritter Hotkey für Pause/Fortsetzen ohne Hook? Hängt an der Frage,
+  ob Push-to-talk gebraucht wird.
+- **Einfügen** ist als Einstellung entschieden (`insert_after_dictation` mit
+  `never`/`same_window`/`always`); offen sind **der Default** (`same_window` ist
+  eingetragen, aber vom Eigentümer nicht bestätigt) und **der Name** des
+  Schlüssels (gewählt, nicht abgestimmt). Beides ist eine Zeile in
+  `config.json` bzw. ein Bezeichner im Code.
+- **#9 Installer und Update-Kanal** — NSIS allein oder MSI zusätzlich für
+  Enterprise-Verteilung; unsigniert mit SmartScreen-Warnung oder mit Zertifikat.
 - **§, Aktenzeichen und Beträge** — bewusst vertagt. Befund: Whisper hat keine
   Inverse Text Normalization, also wird „Paragraph" zum Wort und nicht zum
   Zeichen; für Aktenzeichen gibt es weltweit keine Messung. In v0.1 ist das eine
   Prompt-Aufgabe. Ob es je eigene Eingabefelder braucht, entscheidet sich nach
   dem ersten echten Protokoll.
 - **Wiederaufnahme mit Rückfrage** statt automatisch (heute: automatisch).
-- **Update-Kanal und Signatur (#9)** — unsigniert mit SmartScreen-Warnung oder
-  Zertifikat.
 - **Markenrecherche** EUIPO/AT für den Namen, vor der ersten Veröffentlichung.
+
+Der Umsetzungsplan für die Einfüge-Entscheidung und den Konverter liegt
+außerhalb des Repos unter
+`~/.opencode/plan/diktatwerkstatt-einfuegen-und-cf-html.md` (Stand
+2026-11-16); der Inhalt ist in `DOMAIN.md`, `DECISIONS.md` und #10 abgebildet,
+der Plan ist nur die Lesefassung.
 
 ## Bekannte Fallen
 

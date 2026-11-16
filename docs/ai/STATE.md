@@ -3,7 +3,7 @@ type: State
 title: Zustand
 description: Was existiert, was noch nicht, und wie man es prüft.
 tags: [zustand]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:08:40Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:51:36Z }
 status: stable
 ---
 
@@ -40,11 +40,13 @@ Im Moment gibt es nichts zu verifizieren außer der Dokumentenkonsistenz:
 Regeln nennen. `CONTEXT.md` ist dabei die Quelle der Begriffe, `DOMAIN.md` die
 Quelle der Invarianten; wer einen Begriff ändert, ändert ihn zuerst dort.
 
-Der erste grüne `cargo`-Commit wird voraussichtlich **#4** (Domänenkern), weil
-er ohne Hardware und ohne Netz auskommt. Der Spike (#1) braucht die VM und
-kommt danach.
+Der erste grüne `cargo`-Commit kommt voraussichtlich aus **#4** (Domänenkern)
+oder **#10** (Konverter), weil beide ohne Hardware und ohne Netz auskommen. Der
+Spike (#1) braucht die VM und kommt danach.
 
 ## Nächster Schritt
 
-`docs/ai/HANDOFF.md`, Schritt 2: Spike #1 in der VM auf think. Parallel #4 und
-#5, beide plattformunabhängig.
+`docs/ai/HANDOFF.md`, Schritt 3: #4 (Domänenkern) und #10 (Konverter) zuerst —
+beide ohne Hardware und ohne Netz, und #10 ist der einzige Baustein, der schon
+jetzt gegen eine Spezifikation testbar ist. Der Spike #1 braucht die VM auf
+think; #5 läuft parallel.

@@ -1,5 +1,19 @@
 # Persistenz-Log
 
+## 2026-11-16 — Sitzungsschluss: offene Fragen der Einfüge-Entscheidung
+
+* **Update**: [HANDOFF.md](HANDOFF.md) — Schritt 3 nennt jetzt #10 (Konverter)
+  als dritten Linux-Baustein; die offenen Entscheidungen sind aufgeteilt in
+  **Hotkey-Mechanik** (Hook vs. dritter Hotkey, hängt an Push-to-talk),
+  **Einfügen** (entschieden als Einstellung; offen sind Default `same_window`
+  und der Schlüsselname `insert_after_dictation`) und **#9 Installer/Signatur**;
+  Zeiger auf die Lesefassung des Umsetzungsplans.
+* **Update**: [STATE.md](STATE.md) — Nächster Schritt und Verifikationsabsatz
+  nennen #4 und #10 als erste `cargo`-Commits.
+* **Verworfen**: nichts; die Superseded-Einträge dieses Tages stehen im
+  vorherigen Eintrag.
+* **Verifikation**: `okf-check --root docs/ai` grün.
+
 ## 2026-11-16 — Einfügen als Einstellung, Lieferung als CF_HTML
 
 * **Creation**: [DOMAIN.md](DOMAIN.md) um `### CF_HTML` (Kopfzeile,
