@@ -5,8 +5,10 @@ Arbeitsregeln für dieses Repository. Globale Regeln stehen in
 
 ## Status
 
-**Spezifikationsphase.** Es wird kein Produktcode geschrieben, bevor der Spike
-(siehe Issues) die vier Windows-Bausteine belegt hat.
+**Spezifikationsphase, ausgegrillt.** Es wird kein Produktcode geschrieben, bevor
+der Spike (#1) die vier Windows-Bausteine belegt hat. Das Grill-Ergebnis steht
+als Kommentar an Epic #3 und ist in `CONTEXT.md`, `DOMAIN.md` und `DECISIONS.md`
+eingearbeitet.
 
 ## Stack
 
@@ -35,6 +37,12 @@ cargo test
 ```
 
 Nur grün wird committet. Keine Ausnahmen.
+
+**Solange kein Crate existiert** (also bis zum ersten Code-Commit), treten an
+diese Stelle die Konsistenzprüfungen der Dokumente: `CONTEXT.md` ist die Quelle
+der Begriffe, `DOMAIN.md` die Quelle der Invarianten, `DECISIONS.md` darf keine
+dazu widersprüchliche Entscheidung enthalten. Ein Doku-Commit ist grün, wenn
+keine Vokabel und keine Invariante an zwei Stellen verschieden definiert ist.
 
 ## Commits und Issues
 

@@ -7,21 +7,21 @@ trägt ihn hier ein.
 
 | Begriff | Bedeutung |
 |---|---|
-| **Diktat** | Ein Eintrag im Ring. Container aus Rohtextblöcken, einer Politur und einer Übergabespur. Ein Diktat ist entweder offen oder geschlossen. |
-| **Rohtextblock** | Ein Transkriptionsergebnis, das an ein Diktat gehängt wurde. Kleinste Einheit des Rohtexts. |
-| **Append** | Einen weiteren Rohtextblock an das offene Diktat hängen. Betrifft Rohtext, nie Audio. |
-| **Offenes Diktat** | Das jüngste, noch nicht geschlossene Diktat. Es gibt höchstens eines. |
-| **Geschlossenes Diktat** | Eingefroren. Der Rohtext wächst nicht mehr; Prompts dürfen weiter darauf laufen. |
-| **Ring** | Die letzten 5–7 Diktate. Das älteste fällt heraus, sofern es nicht `pinned` ist. |
-| **Prompt** | Eine benannte Anweisung mit Alias, jederzeit auf den Rohtext eines Diktats anwendbar. Beispiele: „EN-freundlich", „FR-böse", „DE-sachlich". |
-| **Politur** | Das Ergebnis des letzten Play über das ganze Diktat. Genau ein Slot pro Diktat, keine Historie. |
-| **Play** | Einen Prompt auf den Rohtext anwenden. Schreibt die Politur und legt sie in die Zwischenablage. |
-| **Auswahl** | Der im Dropdown gewählte Prompt — das, was der *nächste* Play benutzt. |
-| **Angewandter Prompt** | Der Prompt, aus dem die *aktuelle* Politur entstanden ist. Steht in der Politur, nicht im Dropdown. |
-| **Delta** | Der Teil des Rohtexts, der noch nicht an die Zielanwendung übergeben wurde. |
+| **Diktat** | Ein Eintrag im FIFO. Ein in sich geschlossener Vorgang: ein Brief, eine Notiz, ein Besprechungsprotokoll. Besteht aus einem rohen und höchstens einem polierten Transkript. |
+| **Rohes Transkript** | Der aus den transkribierten Fragmenten zusammengesetzte Text eines Diktats. Es gibt genau eines pro Diktat; es wächst durch **Append**. |
+| **Poliertes Transkript** | Das Ergebnis des letzten **Prompt anwenden** über das ganze rohe Transkript. Genau ein Slot pro Diktat, keine Historie. |
+| **Polieren** | Die Tätigkeit: einen Prompt auf das rohe Transkript anwenden. |
+| **Append** | Weiteren Rohtext an ein Diktat hängen. Betrifft das rohe Transkript, nie Audio. Nur möglich, wenn dessen Transkription abgeschlossen ist. |
+| **Fragment** | Ein während der Aufnahme geschnittenes Audiostück (~21 s). Kleinste Einheit der Audioseite. |
+| **Arbeitsverzeichnis** | Das Verzeichnis eines Diktats, solange dessen Transkription läuft. Es hält je Fragment entweder `NNN.wav` (noch nicht transkribiert) oder `NNN.txt` (transkribiert). Die Mischung ist der Zustand. |
+| **Prompt** | Eine Anweisung an das LLM — **nie** der Text. Jeder Prompt hat einen Alias und ist entweder System-Prompt (Rolle, Ausgabeformat) oder User-Prompt (die eigentliche Aufgabe). |
+| **Auswahl** | Das Paar aus gewähltem System- und gewähltem User-Prompt, mit dem der nächste Aufruf arbeitet. |
+| **Prompt anwenden** | Die Auswahl auf das rohe Transkript anwenden. Schreibt das polierte Transkript und legt es in die Zwischenablage. |
+| **FIFO** | Die letzten N Diktate, N aus der Konfiguration. Kommt eines hinzu, fällt das älteste samt Arbeitsverzeichnis heraus. |
 | **Zielanwendung** | Das Programm, in das eingefügt wird: Word, Google Docs, Notepad, ein Terminal. |
-| **Fast Path** | Hook → Audio → Fragmentierung → STT → Zwischenablage → Tray. Läuft ohne Webview und ohne JavaScript. |
-| **Workbench** | Das Fenster: Reiter „Roh" und „gerendert", Prompt-Liste, Play. |
+| **Zwischenablage** | Die Windows-Zwischenablage. Sie ist die einzige Schnittstelle zur Zielanwendung. |
+| **Fast Path** | Hotkey → Audio → Fragmente → STT → rohes Transkript. Läuft ohne Webview und ohne JavaScript. |
+| **Workbench** | Das Fenster: Reiter „rohes Transkript" und „poliertes Transkript", Prompt-Auswahl, **Prompt anwenden**. |
 | **Tray-Zustand** | Einer von `IDLE`, `RECORDING`, `PAUSED`, `TRANSCRIBING`, `POLISHING`, `READY`, `POLISHED`, `FEHLER`. |
 
 ## Geerbte Begriffe
@@ -31,7 +31,6 @@ die Audioseite, nicht die Textseite:
 
 | Begriff | Bedeutung |
 |---|---|
-| **Fragment** | Ein während der Aufnahme geschnittenes Audiostück (~21 s). |
 | **Naht** | Die Grenze zwischen zwei Fragmenten. Zentralbegriff des Verfahrens. |
 | **Q** | Tiefe × Dauer eines Stillekandidaten unter der adaptiven Achse `X = 0,65·M + 100`. Dimensionslos, verstärkungsinvariant. |
 | **Q-Gate** | Bedingung `Q < quality_min`; trifft sie zu, wird die Naht konditioniert. |
@@ -40,27 +39,57 @@ die Audioseite, nicht die Textseite:
 
 ## Bewusste Abgrenzungen
 
-- **„Append" heißt hier nicht PCM anhängen.** In `polished-recognition` meint
-  append das Anhängen von Audio an den Puffer. Hier heißt es: einen
-  Rohtextblock anhängen.
-- **„Chunk" ist kein Audiostück.** Ein Audiostück ist ein *Fragment*; ein
-  Textstück ist ein *Rohtextblock*.
-- **Kein Run-Verlauf.** Es gibt genau eine Politur pro Diktat. Ein neuer Play
-  überschreibt sie, samt Herkunftsangabe.
-- **Keine Veraltet-Markierung.** Ändert sich der Rohtext, wird die Politur
-  verworfen, nicht als „veraltet" weitergeführt. Ein Zustand, der lügen kann,
-  existiert nicht.
+- **„Fragment" ist immer Audio, nie Text.** Ein Textstück heißt Satz, Absatz
+  oder — als Ganzes — rohes Transkript. Es gibt keinen „Rohtextblock" und
+  keinen „Chunk" mehr.
+- **„Prompt" ist nie der Text.** Wer vom Ergebnis spricht, meint das polierte
+  Transkript.
+- **FIFO ist kein Ring.** Eine Warteschlange hat ein Ende; einen Kreis gibt es
+  hier nicht, und „Ring" hat lange eine Struktur behauptet, die es nie gab.
+- **Das rohe Transkript ist ein Text, keine Liste.** Es gibt keine Blöcke,
+  keine `seq`, keine Blockgrenzen in der Datenbank. Wo ein Fragment anfing,
+  weiß nur das Arbeitsverzeichnis, und nur solange es existiert.
+- **Es gibt kein Zustandsfeld.** Ob ein Diktat offen ist, sagt allein das
+  Arbeitsverzeichnis: existiert es, ist die Transkription nicht fertig.
+- **Kein Run-Verlauf.** Es gibt genau ein poliertes Transkript pro Diktat. Ein
+  neues Prompt anwenden überschreibt es.
+- **Keine Veraltet-Markierung.** Ändert sich das rohe Transkript, wird das
+  polierte Transkript verworfen, nicht als „veraltet" weitergeführt. Ein
+  Zustand, der lügen kann, existiert nicht.
+- **Keine Herkunftsangabe am polierten Transkript.** Welcher Prompt und
+  welches Modell es erzeugt haben, wird nicht gespeichert.
 
 ## Zustände und Übergänge
 
 ```
-IDLE ──hotkey──▶ RECORDING ⇄ PAUSED
-                      │
-                   (stop)
-                      ▼
-                TRANSCRIBING ──▶ READY ──play──▶ POLISHING ──▶ POLISHED
-                      │              │                            │
-                   FEHLER        (append)                    (play erneut)
-                                     ▼                            ▼
-                                 RECORDING                    POLISHING
+IDLE ──hotkey──▶ RECORDING ⇄ PAUSED          (Arbeitsverzeichnis entsteht)
+                     │
+                  (Enter)
+                     ▼
+               TRANSCRIBING ──────────────▶ READY ──"Prompt anwenden"──▶ POLISHING
+                     │                        │                            │
+                  (STT-Fehler)                │                       (Antwort)
+                     ▼                        │                            ▼
+                  FEHLER ◀────────────────────┴────────────────────── FEHLER
+                                                                            │
+                                                                       POLISHED
 ```
+
+| Von | Nach | Auslöser |
+|---|---|---|
+| `IDLE` | `RECORDING` | Hotkey „diktieren roh" oder „diktieren poliert"; neues Diktat, Arbeitsverzeichnis entsteht |
+| `RECORDING` | `PAUSED` | Leertaste. Die Leertaste wird **nur** in `RECORDING` geschluckt |
+| `PAUSED` | `RECORDING` | Leertaste |
+| `RECORDING` | `TRANSCRIBING` | Enter. Es wird gewartet, bis das letzte Fragment transkribiert ist |
+| `TRANSCRIBING` | `READY` | alle Fragmente transkribiert, roh gewählt: Zwischenablage = rohes Transkript |
+| `TRANSCRIBING` | `POLISHING` | alle Fragmente transkribiert, poliert gewählt: ein Aufruf an das LLM |
+| `POLISHING` | `POLISHED` | Antwort da: poliertes Transkript in Fenster **und** Zwischenablage |
+| `POLISHING` | `FEHLER` | LLM-Fehler; der Rohtext geht als Rückfall in die Zwischenablage |
+| `TRANSCRIBING` | `FEHLER` | STT-Fehler; das Arbeitsverzeichnis bleibt und wird beim nächsten Start fortgesetzt |
+| `READY`, `POLISHED`, `FEHLER` | `POLISHING` | **Prompt anwenden** |
+| `READY`, `POLISHED`, `FEHLER` | `RECORDING` | nächste Aufnahme; das vorige Diktat bleibt im FIFO |
+| `READY` | `POLISHED` | **Prompt anwenden** über einen bereits polierten Stand |
+
+Während `RECORDING` transkribiert die App im Hintergrund. Das Tray zeigt das
+nicht — es bleibt eine Ampel, kein Dashboard. `TRANSCRIBING` erscheint nur,
+wenn nichts mehr aufgenommen wird.

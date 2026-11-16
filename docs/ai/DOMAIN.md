@@ -1,120 +1,194 @@
 ---
 type: Domain
 title: Domänenmodell
-description: Tabellen, Invarianten und Zustände der Diktatwerkstatt.
+description: Tabellen, Invarianten, Abläufe und Arbeitsverzeichnis der Diktatwerkstatt.
 tags: [domain, datenmodell]
-generated: { by: opencode, at: 2026-11-15T00:00:00Z }
-status: draft
+generated: { by: opencode, at: 2026-11-16T00:00:00Z }
+status: active
 ---
 
 # Domänenmodell
 
-Drei Tabellen. Eine SQLite-Datei. Kein ORM.
+Zwei Tabellen. Eine SQLite-Datei. Dazu eine Konfigurationsdatei und ein
+Arbeitsverzeichnis pro laufendem Diktat.
 
-Speicherort: `%LOCALAPPDATA%\diktatwerkstatt\diktatwerkstatt.db` (Windows),
-`~/.local/share/diktatwerkstatt/diktatwerkstatt.db` (Linux).
-API-Schlüssel liegen **nicht** darin, sondern im Windows Credential Manager.
+## Speicherorte
 
-## `recording` — das Diktat
+| Was | Wo |
+|---|---|
+| Datenbank | `%LOCALAPPDATA%\diktatwerkstatt\diktatwerkstatt.db` (Windows), `~/.local/share/diktatwerkstatt/diktatwerkstatt.db` (Linux) |
+| Konfiguration | `config.json` **neben** der Datenbank, nicht darin |
+| Arbeitsverzeichnisse | `<Datenverzeichnis>/audio/<diktat-id>/` — temporär, verschwindet nach dem Abschluss |
+| API-Schlüssel | Windows Credential Manager bzw. Secret Service — **nie** in der Datenbank oder in `config.json` |
+
+Die Trennung von Datenbank und Konfiguration ist Absicht: „Daten löschen" darf
+die API-Konfiguration nicht mitnehmen, und eine Einstellungsdatei soll man von
+Hand lesen können.
+
+## `diktat` — das Diktat
 
 | Spalte | Typ | Bedeutung |
 |---|---|---|
 | `id` | INTEGER PK | |
 | `created_at` | TEXT | ISO-8601, lokal |
-| `closed_at` | TEXT NULL | gesetzt, sobald geschlossen |
-| `status` | TEXT | `offen` \| `geschlossen` |
-| `pinned` | INTEGER | 1 = vom Ring ausgenommen |
-| `handed_over_seq` | INTEGER | höchste Rohtextblock-`seq`, die bereits in die Zwischenablage ging (0 = keine) |
-| `polished_text` | TEXT NULL | die Politur — genau ein Slot |
-| `polished_prompt_id` | INTEGER NULL | Prompt, aus dem sie entstand |
-| `polished_model` | TEXT NULL | Modell, aus dem sie entstand |
-| `polished_at` | TEXT NULL | Zeitpunkt des letzten Play |
+| `audio_dir` | TEXT NULL | Arbeitsverzeichnis. **`NULL` heißt: Transkription abgeschlossen** |
+| `raw_text` | TEXT NOT NULL DEFAULT `''` | das rohe Transkript |
+| `polished_text` | TEXT NULL | das polierte Transkript — genau ein Slot |
 
-`handed_over_seq` beschreibt die **Übergabe an die Zwischenablage**, nicht das
-Einfügen. Ob der Text tatsächlich in der Zielanwendung gelandet ist, ist von
-außen nicht feststellbar — die App behauptet es nicht.
-
-## `chunk` — der Rohtextblock
-
-| Spalte | Typ | Bedeutung |
-|---|---|---|
-| `id` | INTEGER PK | |
-| `recording_id` | INTEGER FK | `ON DELETE CASCADE` |
-| `seq` | INTEGER | 1-basiert, lückenlos, pro Diktat eindeutig |
-| `created_at` | TEXT | ISO-8601 |
-| `raw_text` | TEXT | das Transkript |
-| `sprache` | TEXT NULL | von der STT-API gemeldet, nicht geraten |
-| `stt_modell` | TEXT | z. B. `whisper-large-v3-turbo` |
-| `dauer_ms` | INTEGER | Audioblock-Dauer |
-| `quelle` | TEXT | `diktiert` \| `eingefuegt` |
+`audio_dir` ist das einzige Zustandsfeld. Es gibt kein `status`, kein
+`closed_at`, kein `pinned`, kein `handed_over_seq`. Ein Feld, das man setzen
+kann, ohne dass sich Verhalten ändert, existiert nicht.
 
 ## `prompt` — die Bibliothek
 
 | Spalte | Typ | Bedeutung |
 |---|---|---|
 | `id` | INTEGER PK | |
-| `alias` | TEXT UNIQUE | Anzeigename, z. B. „FR-böse" |
-| `body` | TEXT | die Anweisung; `{{text}}` ist der Rohtext |
-| `default_model` | TEXT NULL | Vorschlag, keine Bindung |
-| `zielsprache` | TEXT NULL | optional, für Filter/Sortierung |
-| `ton` | TEXT NULL | optional, für Filter/Sortierung |
-| `archiviert` | INTEGER | 1 = nicht mehr im Dropdown |
+| `alias` | TEXT UNIQUE | Anzeigename, z. B. „DE-sachlich" |
+| `is_system` | INTEGER | 1 = System-Prompt (Rolle, Ausgabeformat), 0 = User-Prompt (die Aufgabe) |
+| `prompt_text` | TEXT | die Anweisung; im User-Prompt ist `{{text}}` das rohe Transkript |
 
-`zielsprache` und `ton` sind bewusst **optional**: der Alias genügt heute, die
-Felder kosten nichts und ersparen später eine Migration.
+Die Auswahl besteht aus **zwei** Zeilen: einem System-Prompt und einem
+User-Prompt. Sie werden unabhängig gewählt; es gibt keine Verknüpfung und
+damit keine Fremdschlüsselspalte.
 
-## Die sieben Invarianten
+## Das Arbeitsverzeichnis
 
-1. **Rohtext eines Diktats** = Verkettung seiner Blöcke nach `seq`, getrennt
-   durch eine Leerzeile. Der Rohtext wird nicht redundant gespeichert.
-2. **Höchstens ein Diktat ist offen** — und es ist das jüngste im Ring.
-3. **Geschlossene Diktate sind unveränderlich.** Angehängt wird nur an das
-   offene. Es gibt kein „Diktat wieder öffnen".
-4. **Append** fügt eine Zeile in `chunk` ein (`seq = max+1`) und lässt den
-   Status `offen`. Ein Append ist kein neues Diktat.
-5. **Jede Änderung am Rohtext verwirft die Politur**: Append, Korrektur eines
-   Blocks, Löschen eines Blocks setzen `polished_*` auf `NULL`.
-6. **Eine Politur pro Diktat.** Play überschreibt sie vollständig, inklusive
-   Herkunft (`polished_prompt_id`, `polished_model`, `polished_at`).
-7. **Der Ring hält 5–7 Einträge** (Standard 7, konfigurierbar 5–7). Nach dem
-   Schließen eines Diktats wird das älteste nicht-`pinned` gelöscht, mit allen
-   Blöcken (Cascade). Es gibt kein Archiv und keine Pagination.
+Solange ein Diktat transkribiert wird, hält sein Arbeitsverzeichnis je Fragment
+**eine** Datei:
+
+```
+audio/42/
+  041.wav     noch nicht transkribiert
+  042.txt     transkribiert, Audio bereits gelöscht
+  043.wav
+```
+
+- Drei Ziffern, nullgefüllt, damit lexikografische und numerische Ordnung
+  dasselbe sind. Ab 1000 Fragmenten wird die Transkription mit einem Fehler
+  abgebrochen, statt falsch zu sortieren (999 Fragmente ≈ 5,8 h bei 21 s).
+- Die Mischung ist kein Fehler, sondern die Anzeige: nur `.wav` heißt offen,
+  `.txt` heißt erledigt.
+- Ein **leeres** `.txt` ist gültig und bedeutet „dieses Fragment war Stille".
+  Es muss geschrieben werden, sonst wird die zugehörige `.wav` endlos neu
+  transkribiert.
+- Geschrieben wird über `NNN.txt.tmp` und `rename`; ein abgebrochener
+  Schreibvorgang darf nicht als erledigt gelten.
+- Am Ende wird in Fragmentreihenfolge verkettet. Die `.txt`-Dateien enden
+  **ohne** abschließenden Zeilenumbruch — der Zwischenraum an einer Naht gehört
+  der Naht-Reparatur, nicht dem Dateischreiber.
+
+## Die zehn Invarianten
+
+1. **`audio_dir` gesetzt ⇔ Transkription nicht abgeschlossen.** Es gibt kein
+   zweites Zustandsfeld.
+2. **Text vor Audio, auf Fragmentebene:** `NNN.txt` ist geschrieben und
+   umbenannt, **bevor** `NNN.wav` gelöscht wird.
+3. **Text vor Audio, auf Diktatebene:** `raw_text` ist committet, **bevor** das
+   Verzeichnis entfernt und `audio_dir` auf `NULL` gesetzt wird.
+4. **`raw_text` ist die einzige Speicherung des rohen Transkripts.** Keine
+   Blöcke, keine `seq`, keine Redundanz.
+5. **Append nur bei abgeschlossener Transkription.** Solange `audio_dir`
+   gesetzt ist, wird Append verweigert (typisierter Fehler, kein Panic).
+6. **Jede Änderung am rohen Transkript verwirft das polierte:** Append und
+   Korrektur setzen `polished_text` auf `NULL`. Es folgt **keine**
+   automatische Neupolitur.
+7. **Ein poliertes Transkript pro Diktat.** **Prompt anwenden** überschreibt es
+   vollständig.
+8. **Die Zwischenablage wird genau einmal pro Diktat geschrieben**, atomar mit
+   dem Erscheinen des Textes im Fenster.
+9. **Der FIFO hält höchstens N Diktate** (N aus `config.json`). Kommt eines
+   hinzu, fällt das älteste samt Arbeitsverzeichnis heraus. Es gibt kein
+   Archiv und keine Pagination.
+10. **Das rohe Transkript wird nie umformatiert gespeichert** — kein Wrapping,
+    keine Normalisierung, keine stille Korrektur.
+
+## Ablauf: roh
+
+1. Hotkey „diktieren roh" → Aufnahme beginnt; ein `diktat` entsteht mit
+   `audio_dir`, `raw_text` ist leer.
+2. Alle ~21 s wird ein Fragment geschnitten und als `NNN.wav` abgelegt.
+3. Das Fragment wird an den STT-Dienst geschickt, mit exponentiellem Backoff
+   bis es angenommen ist. Das Transkript erscheint sofort im Reiter „rohes
+   Transkript".
+4. Antwort da → `NNN.txt.tmp` schreiben, `rename`, **dann** `NNN.wav` löschen.
+5. Leertaste pausiert und setzt fort. Enter beendet die Aufnahme.
+6. Nach Enter: warten, bis das letzte Fragment als `.txt` vorliegt. Dann
+   verketten, `raw_text` schreiben, **dann** die Zwischenablage füllen, **dann**
+   das Verzeichnis löschen und `audio_dir` auf `NULL`. Tray: `READY`.
+
+## Ablauf: poliert
+
+Gleich bis Schritt 6, mit zwei Unterschieden:
+
+- Die Zwischenablage bleibt **leer**, bis das Ergebnis vorliegt.
+- Der vollständige `raw_text` geht als **ein** Aufruf an das LLM (gewählter
+  System- und gewählter User-Prompt). Passt der Text nicht in das Modell, gibt
+  es einen Fehler — **nie** eine Kürzung.
+
+Kommt die Antwort, werden `polished_text`, der zweite Reiter und die
+Zwischenablage in einem Zug gesetzt. Tray: `POLISHED`.
+
+Wird poliert, obwohl die Auswahl unvollständig ist (kein User-Prompt gewählt),
+verweigert die App den Aufruf mit einem Hinweis, statt still roh zu liefern.
+
+## Ablauf: Diktat aus der Zwischenablage
+
+Ein neues Diktat kann statt einer Aufnahme einen Text aus der Zwischenablage
+aufnehmen — der Weg für lange Protokolle, die `aitranscribe` bereits
+transkribiert hat:
+
+`diktat` anlegen, `audio_dir` bleibt `NULL`, der eingefügte Text wird
+`raw_text`. Danach ist das Diktat sofort append- und polierfähig. Woher der
+Text kam, wird **nicht** gespeichert.
 
 ## Lieferung
 
-- Nach erfolgreicher Transkription geht der **Rohtextblock** in die
-  Zwischenablage; `handed_over_seq` wird auf dessen `seq` gesetzt. Tray: `READY`.
-- Play legt die **Politur** in die Zwischenablage und überschreibt dort den
-  Rohtext. Tray: `POLISHED`.
-- Play fügt **nie** selbst in die Zielanwendung ein. Einfügen bleibt eine
-  bewusste Handlung des Nutzers (Strg+V), damit ein erneuter Play keinen
-  doppelten Text im Dokument erzeugt.
-- Beim Schreiben in die Zwischenablage werden die Windows-Formate
-  `CanIncludeInClipboardHistory=0`, `CanUploadToCloudClipboard=0` und
-  `ExcludeClipboardContentFromMonitorProcessing` gesetzt: der Text ist
-  einfügbar, erscheint aber nicht in `Win+V` und in keinem Clipboard-Manager.
+- In die Zwischenablage gehen **beide** Formate: `CF_HTML` (semantisches HTML,
+  damit die Zielanwendung ihre eigenen Formatvorlagen anwendet) und
+  `CF_UNICODETEXT`.
+- Dazu werden immer `CanIncludeInClipboardHistory=0`,
+  `CanUploadToCloudClipboard=0` und `ExcludeClipboardContentFromMonitorProcessing`
+  gesetzt. Diese Formate wirken **global** für den gesamten Inhalt, nicht je
+  Datenformat — `CF_HTML` daneben zu legen hebt den Ausschluss nicht auf.
+- Das polierte Transkript darf nur Absatz, Überschrift, ungeordnete Liste und
+  fett enthalten. **Geordnete Listen werden als Text mit ihren Ziffern
+  ausgegeben**, weil deutsche Rubrum-Nummerierung Text ist und keine Struktur.
+  Vor dem Schreiben wird validiert; ein Verstoß wird gemeldet und nicht
+  stillschweigend repariert.
+- Die App fügt **nie** selbst in die Zielanwendung ein.
 
-## Lebenszyklus eines Diktats
+## Fehlerfälle
 
-```
-neu        INSERT recording(status=offen)
-sprechen   INSERT chunk(seq=1)          ← nach Stop
-pausieren  kein DB-Schreibvorgang, nur Zustand
-anhängen   INSERT chunk(seq=2)          ← verwirft polished_*
-schließen  UPDATE recording SET status=geschlossen, closed_at=now
-ring       DELETE ältestes nicht-pinned, wenn Anzahl > 7
-```
+| Fall | Verhalten |
+|---|---|
+| STT antwortet nicht | `.wav` bleibt liegen, Backoff, Tray `FEHLER`; das Verzeichnis bleibt für die Wiederaufnahme |
+| Modell kann den Text nicht | kein Abschneiden; der Rohtext geht als Rückfall in die Zwischenablage; Tray `FEHLER` |
+| Schlüssel abgelehnt | wie oben, plus Handlungsanweisung im Fenster |
+| nur Stille aufgenommen | leere `.txt` je Fragment, `raw_text` leer, nichts in die Zwischenablage, Meldung |
+| Absturz mitten in der Aufnahme | das Verzeichnis bleibt; beim Start werden die restlichen `.wav` transkribiert **und** der Abschluss läuft |
+| Diktat fällt aus dem FIFO | das Arbeitsverzeichnis wird mitgelöscht |
+
+## Wiederaufnahme beim Start
+
+Beim Start werden alle Diktate mit gesetztem `audio_dir` gefunden. Für jedes
+werden die verbliebenen `.wav` transkribiert; danach läuft derselbe Abschluss
+wie nach Enter (verketten, `raw_text` schreiben, Verzeichnis entfernen). Ohne
+diesen zweiten Schritt bliebe das Diktat in einer Sackgasse hängen: alle
+Fragmente erledigt, aber kein Text und kein Ende.
 
 ## Audio
 
-Audio wird nach erfolgreicher Transkription des Blocks verworfen
-(Retention 0 als Standard). Es gibt keine Medienbibliothek und keine
-Audio-Historie — der Ring hält Text, nicht Ton. Wird Evidenz gewünscht, gilt das
-Session-Bundle-Format aus `polished-recognition`, damit der dortige
+Audio wird nicht aufbewahrt. Jede Fragmentdatei verschwindet, sobald ihr
+Transkript auf der Platte steht; das Verzeichnis verschwindet mit dem Abschluss.
+Es gibt keine Medienbibliothek und keine Audio-Historie. Wird Evidenz gewünscht,
+gilt das Session-Bundle-Format aus `polished-recognition`, damit der dortige
 Kotlin-`:analyzer` die Desktop-Sitzungen mitlesen kann.
 
 ## Nicht Teil des Modells
 
 - Run-Verlauf, Prompt-Versionierung, Fingerprints.
+- Herkunftsangabe am polierten Transkript (Prompt, Modell, Zeitpunkt).
+- Blockgrenzen, `seq`, Übergabezähler.
 - Konten, Synchronisation, Cloud.
 - Einfüge-Protokoll pro Zielanwendung.

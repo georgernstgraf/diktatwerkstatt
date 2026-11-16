@@ -3,7 +3,7 @@ type: State
 title: Zustand
 description: Was existiert, was noch nicht, und wie man es prüft.
 tags: [zustand]
-generated: { by: opencode, at: 2026-11-15T00:00:00Z }
+generated: { by: opencode, at: 2026-11-16T00:00:00Z }
 status: active
 ---
 
@@ -13,26 +13,36 @@ status: active
 
 | Artefakt | Stand |
 |---|---|
-| `README.md` | Beschreibung, Abgrenzung, Architekturbild |
-| `CONTEXT.md` | Vokabular inkl. bewusster Abgrenzungen und Zustandsdiagramm |
-| `docs/ai/DOMAIN.md` | drei Tabellen, sieben Invarianten, Lieferregeln, Lebenszyklus |
-| `docs/ai/DECISIONS.md` | 12 Entscheidungen, je mit verworfener Alternative |
-| `docs/ai/HANDOFF.md` | Reihenfolge der nächsten Sitzung |
+| `README.md` | Beschreibung, Abgrenzung, Architekturbild, Lizenz |
+| `CONTEXT.md` | Vokabular inkl. bewusster Abgrenzungen und Zustandsübergängen |
+| `docs/ai/DOMAIN.md` | zwei Tabellen, zehn Invarianten, Abläufe, Arbeitsverzeichnis, Fehlerfälle |
+| `docs/ai/DECISIONS.md` | 20 Entscheidungen, je mit verworfener Alternative |
+| `docs/ai/HANDOFF.md` | Reihenfolge der nächsten Sitzung inkl. VM-Lage |
+| `docs/ai/STATE.md` | diese Datei |
 | `AGENTS.md` | Stack, Schichtungsregel, Verifikationsbefehle |
-| Issues | Epic #3 mit acht Sub-Issues (#1, #2, #4–#9) |
+| `LICENSE-MIT`, `LICENSE-APACHE` | dual lizenziert, `MIT OR Apache-2.0` |
+| Issues | Epic #3 mit acht Sub-Issues (#1, #2, #4–#9); #3 ausgegrillt |
 
 ## Existiert nicht
 
 - Kein `Cargo.toml`, kein `src/`, kein `package.json` — **null Produktcode**.
 - Keine Tests, keine CI. `cargo test` läuft ins Leere, weil es kein Crate gibt.
-- Keine Lizenz (Issue #2).
+- Kein `docs/ai/PITFALLS.md` — entsteht mit dem Spike (#1).
+- Keine Windows-VM auf think: qemu, libvirt, OVMF und swtpm sind installiert,
+  es ist aber noch kein Gast definiert.
 
 ## Verifikation
 
 Im Moment gibt es nichts zu verifizieren außer der Dokumentenkonsistenz:
 `CONTEXT.md`, `DOMAIN.md` und `DECISIONS.md` müssen dieselben Begriffe und
-Regeln nennen. Der erste grüne Commit wird der Spike (#1).
+Regeln nennen. `CONTEXT.md` ist dabei die Quelle der Begriffe, `DOMAIN.md` die
+Quelle der Invarianten; wer einen Begriff ändert, ändert ihn zuerst dort.
+
+Der erste grüne `cargo`-Commit wird voraussichtlich **#4** (Domänenkern), weil
+er ohne Hardware und ohne Netz auskommt. Der Spike (#1) braucht die VM und
+kommt danach.
 
 ## Nächster Schritt
 
-`docs/ai/HANDOFF.md`, Schritt 1: Epic #3 ausgrillen.
+`docs/ai/HANDOFF.md`, Schritt 2: Spike #1 in der VM auf think. Parallel #4 und
+#5, beide plattformunabhängig.
