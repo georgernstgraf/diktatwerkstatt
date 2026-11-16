@@ -1,5 +1,21 @@
 # Persistenz-Log
 
+## 2026-11-16 — Referenz: Tauri/Windows-Integration
+
+* **Creation**: [INTEGRATION.md](INTEGRATION.md) — wie Handy (Tauri 2.11.5) und
+  OpenWhispr die Windows-Bausteine lösen: Single Instance, Hotkey-Backends,
+  Low-Level-Hook (`handy-keys`), Delayed-Render-Paste mit Read-Receipt,
+  UIPI-Erkennung, Desired-State-Tray, Autostart, Bundler, Audio-Architektur.
+  Belege als `sources` im Frontmatter und als Fußnoten im Text.
+* **Update**: [index.md](index.md) um das neue Konzept ergänzt.
+* **Verworfen**: Handys Legacy-Paste-Pfad als Vorbild (liest und schreibt nur
+  Text, verliert also alle anderen Clipboard-Formate); `handy-keys` und
+  `handy-recorder` als Dependencies (Ein-Personen-Crates mit Wochen-Churn).
+* **Korrektur an der eigenen Annahme**: Der Low-Level-Hook ist bei fokussierter
+  Admin-App blind — das Schlucken der Leertaste funktioniert nur zwischen
+  Prozessen gleicher Integritätsstufe, `RegisterHotKey` dagegen weiter.
+* **Verifikation**: `okf-check --root docs/ai` grün.
+
 ## 2026-11-16 — Epic #3 ausgegrillt, Bundle auf OKF v0.2 gebracht
 
 * **Creation**: [DOMAIN.md](DOMAIN.md), [DECISIONS.md](DECISIONS.md),

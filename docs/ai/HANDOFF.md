@@ -69,6 +69,9 @@ Beide brauchen keine Hardware und kein Netz, laufen also auch auf Linux.
 
 ## Offene Entscheidungen
 
+- **Hotkey, Einfügen, Installer, Wiederverwendung** — die vier Fragen aus
+  [INTEGRATION.md](INTEGRATION.md#offene-entscheidungen) sind noch nicht
+  entschieden. Sie bestimmen den Zuschnitt von #8 und #9.
 - **§, Aktenzeichen und Beträge** — bewusst vertagt. Befund: Whisper hat keine
   Inverse Text Normalization, also wird „Paragraph" zum Wort und nicht zum
   Zeichen; für Aktenzeichen gibt es weltweit keine Messung. In v0.1 ist das eine

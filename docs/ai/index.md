@@ -15,6 +15,7 @@ Bundles, weil es das Glossar für das ganze Repository ist.
 * [STATE.md](STATE.md) - Was existiert, was nicht, und wie man es prüft
 * [DOMAIN.md](DOMAIN.md) - Zwei Tabellen, zehn Invarianten, Abläufe, Arbeitsverzeichnis, Fehlerfälle
 * [DECISIONS.md](DECISIONS.md) - 20 Architektur- und Produktentscheidungen, je mit verworfener Alternative
+* [INTEGRATION.md](INTEGRATION.md) - Wie Handy und OpenWhispr Hotkey, Hook, Einfügen, Tray und Installer unter Windows lösen — und was wir übernehmen
 
 ## Glossar und Einstieg außerhalb des Bundles
 
