@@ -3,6 +3,48 @@
 Arbeitsregeln für dieses Repository. Globale Regeln stehen in
 `~/.config/opencode/AGENTS.md` und `~/AGENTS.md` und gelten zusätzlich.
 
+## Projekt
+
+Diktatwerkstatt ist ein Windows-Diktierwerkzeug für Menschen, die professionelle
+Texte schreiben, ohne zu tippen: globaler Hotkey, Aufnahme, Transkription über
+eine OpenAI-kompatible API, optionale Politur durch ein LLM, Ausgabe über die
+Zwischenablage in jede Zielanwendung. Das Tray ist die Bedienoberfläche, das
+Fenster dient nur dem Nachlesen und Polieren. FIFO der letzten Diktate, kein
+Archiv, keine Cloud außer der ausdrücklich konfigurierten API.
+
+## Knowledge Bootstrap
+
+Vor jeder Aufgabe zuerst den Wissenseinstieg lesen:
+
+0. `docs/ai/index.md` — OKF-Index des Bundes — **hier anfangen**
+1. `docs/ai/HANDOFF.md` — **zuerst lesen, dann handeln**
+2. `docs/ai/STATE.md` — was existiert, was nicht
+3. `docs/ai/DOMAIN.md` — Tabellen, Invarianten, Abläufe
+4. `docs/ai/DECISIONS.md` — Entscheidungen mit verworfener Alternative
+5. `docs/ai/PITFALLS.md` — Fallstricke, bevor du einen Baustein anfasst
+6. `docs/ai/INTEGRATION.md` — wie die Referenzprojekte es unter Windows lösen
+7. `CONTEXT.md` — Vokabular (liegt außerhalb des Bundes)
+
+Enthält `HANDOFF.md` offene Aufgaben, werden sie vor neuer Arbeit erledigt,
+außer der Nutzer sagt ausdrücklich etwas anderes. Bei „weiter", „mach weiter",
+„wo waren wir" ohne Rückfrage den Handoff lesen und handeln.
+
+## Skill-Trigger
+
+Diese Skills haben keinen Slash-Befehl; sie werden über natürliche Sprache
+geladen:
+
+- **knowledge-persistence** — „merk dir das", „remember", „don't forget",
+  „save context", „persist knowledge", an einem Sitzungs-Checkpoint. Ergebnis ist
+  dieses OKF-Bundle.
+- **issue-workflow** — gilt **dauerhaft**: Issue-Bewusstsein, proaktiver
+  Commit und Push mit Issue-Referenz, Abschlusskriterien. Die natürlichen
+  Auslöser sind manuelle Overrides: „issue start" / „neues issue",
+  „issue commit" / „checkpoint", „issue finish" / „issue fertig".
+- **grilling** — „grill mich", „grill this plan", „hinterfrage das",
+  „stress-test this". Für Entscheidungen, die teuer werden, wenn sie falsch
+  sind; das Ergebnis gehört als Kommentar an das zugehörige Issue.
+
 ## Status
 
 **Spezifikationsphase, ausgegrillt.** Es wird kein Produktcode geschrieben, bevor
@@ -51,6 +93,14 @@ keine Vokabel und keine Invariante an zwei Stellen verschieden definiert ist.
 - Jede Commit-Message referenziert das Issue mit `#<Nummer>`.
 - Trunk-basiert auf `main`, keine Feature-Branches ohne Grund.
 
+## gh-Konventionen
+
+- Immer `gh issue view <N> --json title,body,comments` — **nie** das nackte
+  `gh issue view`. Die nackte Form scheitert in diesem Repository an der
+  Projects-classic-Abstimmung (belegt am 2026-11-16).
+- Für alle lesenden `gh`-Befehle `--json` mit expliziten Feldern verwenden; das
+  vermeidet Deprecation-Warnungen und hält die Ausgabe schlank.
+
 ## Daten und Geheimnisse
 
 - API-Schlüssel nie in der Datenbank, nie im Repository. Windows Credential
@@ -58,7 +108,10 @@ keine Vokabel und keine Invariante an zwei Stellen verschieden definiert ist.
 - Diktate sind Mandantendaten. Keine Telemetrie, keine Protokolle mit
   Textinhalten, keine Cloud außer der ausdrücklich konfigurierten STT-/LLM-API.
 - Beim Schreiben in die Zwischenablage immer die History-/Cloud-Ausschlussformate
-  setzen (siehe `docs/ai/DOMAIN.md`, Abschnitt Lieferung).
+  setzen (siehe `docs/ai/DOMAIN.md`, Abschnitt Lieferung). Sobald es eine
+  **bewusste** „Transkript kopieren"-Aktion gibt, gilt das für sie **nicht** —
+  sonst ist der Text nach dem Kopieren nicht in der History des Nutzers (siehe
+  `docs/ai/INTEGRATION.md`).
 
 ## Dokumentation
 
@@ -96,6 +149,12 @@ keine Vokabel und keine Invariante an zwei Stellen verschieden definiert ist.
   neue Entscheidungen nach `docs/ai/DECISIONS.md` — mit verworfener Alternative.
 - Beobachtungen, die diesen Dokumenten widersprechen, werden im selben Commit
   korrigiert.
+
+## Repository und Kontakt
+
+- GitHub: `georgernstgraf/diktatwerkstatt`
+- Issues: GitHub Issues; Epic #3 mit den Sub-Issues #1, #4–#9 (#2 geschlossen)
+- Eigentümer: Georg Graf <grafg@spengergasse.at>
 
 ## Sprache
 

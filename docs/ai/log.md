@@ -1,5 +1,20 @@
 # Persistenz-Log
 
+## 2026-11-16 — Projektregeln aus opencode-helpers, Fallen nach PITFALLS.md
+
+* **Creation**: [PITFALLS.md](PITFALLS.md) — die Fallstricke aus Audio/STT, Text
+  und Einfügen sowie Bedienung, jetzt mit `sources` und Fußnoten statt als
+  Prosa-Block im Handoff.
+* **Update**: [HANDOFF.md](HANDOFF.md) auf das reduziert, was sein Name sagt
+  (wo man anfängt); [DECISIONS.md](DECISIONS.md) um „Korrigieren heißt Hören
+  reparieren" ergänzt (Prinzip aus dem `protokoll`-Skill).
+  `AGENTS.md` um Knowledge Bootstrap, Skill-Trigger, gh-Konventionen,
+  Repository/Kontakt und Projektidentität erweitert.
+* **Verworfen**: `CONVENTIONS.md` und `ARCHITECTURE.md` vorerst anzulegen (kein
+  Abnehmer — `ARCHITECTURE.md` erst mit dem ersten Code); sichtbare Flag-Marker
+  im polierten Transkript (im Brief unbrauchbar).
+* **Verifikation**: `okf-check --root docs/ai` grün.
+
 ## 2026-11-16 — Referenz: Tauri/Windows-Integration
 
 * **Creation**: [INTEGRATION.md](INTEGRATION.md) — wie Handy (Tauri 2.11.5) und

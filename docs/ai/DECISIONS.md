@@ -11,6 +11,24 @@ status: stable
 
 Neueste oben. Jeder Eintrag nennt Entscheidung, Grund und verworfene Alternative.
 
+## 2026-11-16 — Korrigieren heißt Hören reparieren
+
+**Entscheidung:** Das polierende Modell repariert die Transkription, nicht die
+Aussage. Dialekt, Umgangssprache und Satzbau des Sprechers bleiben; korrigiert
+werden Erkennungsfehler. Namen, Zahlen, Daten und Beträge werden repariert, wo
+die Lesart sicher ist, und sonst gelassen — nie erfunden, nie stillschweigend
+„verbessert". Sichtbare Marker wie `[? Grund]` gibt es in v0.1 **nicht**.
+**Grund:** Übernommen aus dem `protokoll`-Skill der `opencode-helpers`
+(„Repair the hearing, not the speech", „Flag, don't fix" für die tragenden
+Fakten). Ein falscher Nachname ist ein Wort von hundert — 1 % WER und trotzdem
+ein Kanzleifehler; der WER misst hier das Falsche. Marker im Text scheiden aus,
+weil das polierte Transkript in einen Brief wandert und `[? unklar]` dort eine
+Peinlichkeit ist.
+**Verworfen:** das Modell als Lektor, der glättet und umformuliert (verändert
+Aussagen, die niemand ändern wollte); sichtbare Flag-Marker im polierten
+Transkript (im Brief unbrauchbar); Flag-Marker als **spätere** Prompt-Option für
+Protokolle (bleibt möglich, gehört aber nicht in v0.1).
+
 ## 2026-11-16 — Lizenz: dual MIT OR Apache-2.0
 
 **Entscheidung:** Das Projekt steht unter `MIT OR Apache-2.0`. Zwei

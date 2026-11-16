@@ -82,51 +82,12 @@ Beide brauchen keine Hardware und kein Netz, laufen also auch auf Linux.
   Zertifikat.
 - **Markenrecherche** EUIPO/AT für den Namen, vor der ersten Veröffentlichung.
 
-## Bekannte Fallen (nicht neu entdecken)
+## Bekannte Fallen
 
-**Audio und STT**
-
-- Whisper **halluziniert auf Stille**: auf reinem Raumton emittiert `large-v3`
-  in 61,9 % der Fälle Wörter, dokumentiert sind deutsche Untertitel-Credits
-  („Untertitel der Amara.org-Community"). Ein Praxisbericht: 37 min Meeting plus
-  5 h Leerlauf ergab ~600 erfundene von 963 Zeilen. Stille darf nie an die API
-  gehen; es braucht einen harten Stopp, keinen „läuft weiter"-Modus.
-- Das stabile Fenster ist **20–30 s**. Gemessen auf deutscher
-  Verwaltungssprache: 30 s → 4,76 % WER, 45 s → 34,59 %, 60 s → 51,47 %. Die
-  geerbten ~21-s-Fragmente liegen richtig.
-- Prompt-Biasing bei Whisper ist auf **224 Token** begrenzt (~60–100 Fachwörter)
-  und naiv injiziert gefährlich: Prompt-Echo treibt den WER von 6,5 % auf 61 %.
-- OpenAI kündigt `whisper-1` und `gpt-4o-transcribe` zum **26.02.2027** ab; der
-  Nachfolger hat einen eigenen `keywords`-Kanal. Nicht auf den `prompt`-Parameter
-  bauen.
-
-**Text und Einfügen**
-
-- Word übernimmt beim Einfügen von reinem Text die Formatierung **an der
-  Einfügestelle** — die Briefvorlage liefert das Aussehen. Was fehlt, ist
-  Struktur, nicht Formatierung.
-- **AutoCorrect greift beim Einfügen nicht.** Gerade Anführungszeichen und `--`
-  bleiben stehen; das gilt auch für COM-Einfügung.
-- Markdown ist gegen juristischen Text nicht neutral: `1)` wird zur Liste,
-  `5*6*78` wird kursiv, `\§` bleibt als Backslash stehen. Deshalb constrained
-  Markdown plus Validierung.
-- Die Clipboard-Ausschlussformate wirken **global**, nicht je Datenformat —
-  `CF_HTML` daneben zu legen hebt den Win+V-Ausschluss nicht auf. Drittanbieter-
-  Clipboard-Manager halten sich aber nicht zwingend daran.
-- UIPI: erhöht laufende Ziele erreichen weder Hook noch Injection, und
-  `SendInput` meldet den Fehlschlag **nicht** — der Text verschwindet stumm.
-- Google Docs ist ein Canvas: UI Automation ist wertlos, nur echte
-  Tastatur-Events oder ein Paste kommen an.
-
-**Bedienung**
-
-- Space darf **nur im Zustand RECORDING** geschluckt werden, sonst tippt niemand
-  mehr Leerzeichen.
-- Die App fügt nie selbst ein. Sonst entsteht doppelter Text im fremden
-  Dokument.
-- Rohtext nie gewrappt speichern (Fehler aus `aitranscribe`: `PromptManager`
-  wrappt beim Schreiben).
-- Windows 11 versteckt neue Tray-Symbole im Überlauf ⇒ Overlay-Pille zusätzlich.
+Die Fallstricke aus Audio, STT, Textübergabe und Bedienung stehen in
+[PITFALLS.md](PITFALLS.md) — dort mit Belegen. Lies sie, bevor du einen der
+vier Bausteine anfasst; sie sind die Kurzfassung von drei Recherchen und
+zwei Vorgängerprojekten.
 
 ## Umgebung
 
