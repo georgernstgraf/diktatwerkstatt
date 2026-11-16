@@ -3,7 +3,7 @@ type: Handoff
 title: Übergabe
 description: Was die nächste Sitzung zuerst tut, in welcher Reihenfolge, und was schon bekannt ist.
 tags: [wissensbasis, handoff]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-16T05:04:02Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:08:40Z }
 status: stable
 ---
 
@@ -38,14 +38,15 @@ Windows 11 in einer VM auf **think** (steht, noch ohne Gast). Geprüfte Lage:
 aber Issue #1 verlangt „30 s ohne Aussetzer" und „Gerätewechsel überlebt". Ein
 emuliertes HDA-Gerät kann den Defekt **maskieren** oder einen erfinden. Für den
 Audiobaustein entweder USB-Audio per Passthrough (billiger USB-DAC) oder ein
-echtes Windows. Hook, Injection, UIPI und Tray sind in der VM voll belastbar.
+echtes Windows. Hook, Zwischenablage (`CF_HTML`) und Tray sind in der VM voll
+belastbar.
 
 **Neues Abnahmekriterium** (kam aus der Grill-Recherche): Word 365 mit Build
 ≥ 2405, Einfügen aus einem anderen Programm, Standard „Merge Formatting" —
 bleiben `h1`–`h6` echte Überschriften-Formatvorlagen oder werden sie zu
 Fließtext? Davon hängt ab, ob semantisches HTML als Standardweg trägt.
 
-Erkenntnisse danach nach `docs/ai/PITFALLS.md` (Datei anlegen).
+Erkenntnisse danach nach `docs/ai/PITFALLS.md`.
 
 ## Schritt 3 — parallel: #4 Domäne und #5 DSP-Port
 
@@ -69,9 +70,10 @@ Beide brauchen keine Hardware und kein Netz, laufen also auch auf Linux.
 
 ## Offene Entscheidungen
 
-- **Hotkey, Einfügen, Installer, Wiederverwendung** — die vier Fragen aus
-  [INTEGRATION.md](INTEGRATION.md#offene-entscheidungen) sind noch nicht
-  entschieden. Sie bestimmen den Zuschnitt von #8 und #9.
+- **Hotkey und Installer** — zwei der vier Fragen aus
+  [INTEGRATION.md](INTEGRATION.md#offene-entscheidungen) sind noch offen.
+  Einfügen ist entschieden (Einstellung, `same_window` als Default), die
+  Wiederverwendung von `handy-keys`/`handy-recorder` ist im Log verworfen.
 - **§, Aktenzeichen und Beträge** — bewusst vertagt. Befund: Whisper hat keine
   Inverse Text Normalization, also wird „Paragraph" zum Wort und nicht zum
   Zeichen; für Aktenzeichen gibt es weltweit keine Messung. In v0.1 ist das eine

@@ -1,5 +1,24 @@
 # Persistenz-Log
 
+## 2026-11-16 — Einfügen als Einstellung, Lieferung als CF_HTML
+
+* **Creation**: [DOMAIN.md](DOMAIN.md) um `### CF_HTML` (Kopfzeile,
+  Byte-Offsets, Fragment-Marker) erweitert; Invariante 8 um das optionale
+  Einfügen und den Ausschluss bei **Prompt anwenden**.
+* **Update**: [DECISIONS.md](DECISIONS.md) um „Einfügen ist eine Einstellung"
+  (drei Werte, Default `same_window`, keine UIPI-Prüfung, keine
+  Zielfenster-Reaktivierung); [CONTEXT.md](../../CONTEXT.md) um **Einfügen** und
+  **Lieferung**; [INTEGRATION.md](INTEGRATION.md) von der Einfüge-Maschinerie
+  befreit; [PITFALLS.md](PITFALLS.md) korrigiert; `README.md`-Abgrenzung
+  angepasst. Neues Sub-Issue #10 (Markdown → `CF_HTML`) an #3.
+* **Verworfen**: Delayed Render, Format-Snapshot, Read-Receipt, UIPI-Meldung,
+  Zielfenster-Reaktivierung — sie setzen ein Zurücklegen der Zwischenablage
+  voraus, das es nicht gibt.
+* **Drift gebogen**: [STATE.md](STATE.md) behauptete, `PITFALLS.md` existiere
+  nicht; [HANDOFF.md](HANDOFF.md) trug „Datei anlegen" und vier offene Fragen,
+  von denen zwei entschieden sind.
+* **Verifikation**: `okf-check --root docs/ai` grün.
+
 ## 2026-11-16 — Projektregeln aus opencode-helpers, Fallen nach PITFALLS.md
 
 * **Creation**: [PITFALLS.md](PITFALLS.md) — die Fallstricke aus Audio/STT, Text
