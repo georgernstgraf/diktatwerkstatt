@@ -10,9 +10,10 @@ Texte schreiben, ohne zu tippen: globaler Hotkey, Aufnahme, Transkription über
 eine OpenAI-kompatible API, optionale Politur durch ein LLM, Ausgabe über die
 Zwischenablage in jede Zielanwendung. Das Tray ist die Bedienoberfläche; das
 Fenster dient dem Nachlesen, Polieren und **Korrigieren** — wer dort eine
-Ansicht bearbeitet, liefert sie beim Verlassen in die Zwischenablage. FIFO der
-letzten Diktate, kein Archiv, keine Cloud außer der ausdrücklich konfigurierten
-API.
+Ansicht bearbeitet, liefert sie beim Verlassen in die Zwischenablage, und ein
+Knopf **In die Zwischenablage** liefert den sichtbaren Reiter jederzeit. FIFO
+der letzten Diktate, kein Archiv, keine Cloud außer der ausdrücklich
+konfigurierten API.
 
 ## Knowledge Bootstrap
 
@@ -110,12 +111,13 @@ keine Vokabel und keine Invariante an zwei Stellen verschieden definiert ist.
 - Diktate sind Mandantendaten. Keine Telemetrie, keine Protokolle mit
   Textinhalten, keine Cloud außer der ausdrücklich konfigurierten STT-/LLM-API.
 - Beim Schreiben in die Zwischenablage immer die History-/Cloud-Ausschlussformate
-  setzen (siehe `docs/ai/DOMAIN.md`, Abschnitt Lieferung). Sobald es eine
-  **bewusste** „Transkript kopieren"-Aktion gibt, gilt das für sie **nicht** —
-  sonst ist der Text nach dem Kopieren nicht in der History des Nutzers (siehe
-  `docs/ai/INTEGRATION.md`). Die Lieferung beim Verlassen einer bearbeiteten
-  Ansicht ist **automatisch** und darum keine solche Aktion: sie schließt die
-  History weiter aus.
+  setzen (siehe `docs/ai/DOMAIN.md`, Abschnitt Lieferung) — **auch beim Knopf
+  „In die Zwischenablage"**. Der Knopf ist kein bewusstes „Transkript kopieren":
+  die Quelle des Textes ist dieselbe wie bei der Automatik, ein Mandantendiktat
+  gehört nicht in `Win+V`. Eine solche bewusste Aktion gibt es derzeit nicht;
+  sobald es sie gibt, gilt der Ausschluss für sie **nicht** — sonst ist der Text
+  nach dem Kopieren nicht in der History des Nutzers (siehe
+  `docs/ai/INTEGRATION.md`).
 
 ## Dokumentation
 

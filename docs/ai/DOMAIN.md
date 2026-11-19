@@ -3,7 +3,7 @@ type: Domain
 title: Domänenmodell
 description: Tabellen, Invarianten, Abläufe und Arbeitsverzeichnis der Diktatwerkstatt.
 tags: [domain, datenmodell]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:22:34Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:28:38Z }
 status: stable
 ---
 
@@ -98,9 +98,11 @@ audio/42/
 8. **Die Zwischenablage hält immer genau den Text, der im Fenster steht.** Sie
    wird beim Abschluss atomar mit dem Erscheinen des Textes geschrieben und
    danach bei jeder **Lieferung** neu — nie ein Text, den der Nutzer nicht
-   sieht. Ein optionales Einfügen folgt nur dem Abschluss unmittelbar und
-   schreibt sie nicht neu; **Prompt anwenden** und das Verlassen einer
-   bearbeiteten Ansicht fügen nie ein.
+   sieht. Vier Auslöser: Abschluss, **Prompt anwenden**, Verlassen einer
+   bearbeiteten Ansicht, Knopf **In die Zwischenablage**. Ein optionales
+   Einfügen folgt nur dem Abschluss unmittelbar und schreibt sie nicht neu;
+   **Prompt anwenden**, das Verlassen einer bearbeiteten Ansicht und der Knopf
+   fügen nie ein.
 9. **Der FIFO hält höchstens N Diktate** (N aus `config.json`). Kommt eines
    hinzu, fällt das älteste samt Arbeitsverzeichnis heraus. Es gibt kein
    Archiv und keine Pagination.
@@ -162,6 +164,11 @@ Beide Reiter sind editierbar. Das Bearbeiten folgt diesen Regeln:
   vorhandenen Inhalt, in beiden Formaten und mit den Ausschlussformaten aus
   „Lieferung". Maßgeblich ist die **zuletzt bearbeitete** Ansicht.
 - Es folgt **kein** Einfügen. Einfügen ist an den Abschluss gebunden.
+- Der Knopf **In die Zwischenablage** liefert den **sichtbaren** Reiter
+  jederzeit: ohne Bearbeitung, ohne Verlassen, ohne Einfügen. Er ist der Weg für
+  ein nur gelesenes Diktat aus dem FIFO und für den Fall, dass inzwischen eine
+  andere Anwendung die Zwischenablage überschrieben hat. Er liefert immer die
+  sichtbare Ansicht — „zuletzt bearbeitet" gilt nur für die Automatik.
 - Wurde nichts bearbeitet, wird auch nichts geliefert; die Zwischenablage
   behält, was sie hat.
 - Nach einem Rohtext-Edit setzt **Polieren** die Zwischenablage, den zweiten

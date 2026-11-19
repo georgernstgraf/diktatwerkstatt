@@ -1,5 +1,25 @@
 # Persistenz-Log
 
+## 2026-11-19 — Kopier-Knopf als zweiter Weg
+
+* **Creation**: Knopf **„In die Zwischenablage"** in der Workbench — liefert den
+  sichtbaren Reiter jederzeit (ohne Bearbeitung, ohne Verlassen, ohne Einfügen),
+  mit History-Ausschluss wie jede andere Lieferung. Dieselbe Regel im
+  Polished-Editor (#166).
+* **Update**: [DECISIONS.md](DECISIONS.md) — neuer Eintrag (24, „Kopier-Knopf als
+  zweiter Weg"), 23 aus dem Eintrag darunter bleibt bestehen. [DOMAIN.md](DOMAIN.md)
+  — Invariante 8 nennt jetzt vier Auslöser; „Ablauf: Bearbeiten und Liefern" um
+  den Knopf erweitert. [CONTEXT.md](../../CONTEXT.md) — Begriff **In die
+  Zwischenablage** neu, **Lieferung** und **Workbench** nachgezogen.
+  [AGENTS.md](../../AGENTS.md) — Projektabsatz und Ausschlussregel: der Knopf
+  ist kein bewusstes „Transkript kopieren", also bleibt die History aus.
+* **Drift gebogen**: Der Eintrag von heute früh („Bearbeiten liefert") führte
+  „Kein Kopier-Knopf" als Abgrenzung und „Lieferung nur auf Knopfdruck" als
+  verworfen. Richtig ist: verworfen bleibt der Knopf als **einziger** Weg; der
+  Knopf **als zweiter** Weg ist jetzt entschieden. Die Abgrenzung in
+  `CONTEXT.md` ist ersetzt, der alte Log-Eintrag bleibt als Chronik stehen.
+* **Verifikation**: `okf-check --root docs/ai` grün.
+
 ## 2026-11-19 — Bearbeiten liefert in die Zwischenablage
 
 * **Creation**: Regel „Bearbeiten liefert" — beide Workbench-Reiter sind

@@ -3,7 +3,7 @@ type: Handoff
 title: Übergabe
 description: Was die nächste Sitzung zuerst tut, in welcher Reihenfolge, und was schon bekannt ist.
 tags: [wissensbasis, handoff]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:22:34Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:28:38Z }
 status: stable
 ---
 
@@ -79,7 +79,9 @@ Alle drei brauchen keine Hardware und kein Netz, laufen also auch auf Linux.
   Abschnitt „Ablauf: Bearbeiten und Liefern", und `DECISIONS.md` vom
   2026-11-19). Offen ist nur das **Ereignis** auf dem Desktop, der keinen
   Edit-Modus kennt: Fokusverlust, Fensterschließen oder ein Knopf. Betrifft
-  #7 (Workbench) und die Abnahmekriterien von #8 (Lieferung).
+  #7 (Workbench) und die Abnahmekriterien von #8 (Lieferung). Mit dem Knopf
+  **In die Zwischenablage** (2026-11-19) ist ein falsch geratener Auslöser nicht
+  mehr blockierend: der Nutzer kann jederzeit selbst liefern.
 - **Hotkey-Mechanik** — Leertaste/Enter mit eigenem Hook (dann bleiben der
   Hook-Block in #1 und das Abnahmekriterium „Space im Pausenzustand" in #8)
   oder ein dritter Hotkey für Pause/Fortsetzen ohne Hook? Hängt an der Frage,

@@ -3,13 +3,36 @@ type: Decisions
 title: Entscheidungen
 description: Getroffene Architektur- und Produktentscheidungen mit Begründung.
 tags: [entscheidungen, architektur]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:22:34Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:28:38Z }
 status: stable
 ---
 
 # Entscheidungen
 
 Neueste oben. Jeder Eintrag nennt Entscheidung, Grund und verworfene Alternative.
+
+## 2026-11-19 — Kopier-Knopf als zweiter Weg zur Zwischenablage
+
+**Entscheidung:** Die Workbench hat einen Knopf **„In die Zwischenablage"**. Er
+liefert den **sichtbaren** Reiter jederzeit — ohne vorherige Bearbeitung, ohne
+Verlassen des Fensters und ohne Einfügen, in beiden Formaten und mit denselben
+Ausschlussformaten wie jede andere Lieferung. Er ist ein **zweiter** Weg, nicht
+der einzige: die Lieferung beim Abschluss, bei **Prompt anwenden** und beim
+Verlassen einer bearbeiteten Ansicht bleibt unverändert. Auf Android gilt
+dasselbe im Editor (`polished-recognition`, #166).
+**Grund:** Drei Fälle deckt die Automatik nicht ab: die Zwischenablage wurde
+inzwischen von einer anderen Anwendung überschrieben; ein älteres Diktat aus dem
+FIFO wird nur gelesen und darum nie geliefert; derselbe Text wird nach dem
+Verlassen noch einmal gebraucht. Im Markor-Ablauf ist „alles markieren,
+kopieren" genau der Schritt, der hier ein Klick wird. Der Knopf als **einziger**
+Weg bleibt verworfen — siehe den Eintrag darunter.
+**Verworfen:** der Knopf als einziger Weg (ein Pflichtklick, wo ein Ereignis
+genügt); der Knopf liefert die „zuletzt bearbeitete" statt der sichtbaren
+Ansicht (bei einem nur gelesenen Diktat gäbe es nichts Bearbeitetes); der
+History-Ausschluss nur bei der Automatik (die Quelle des Textes ist dieselbe —
+ein Mandantendiktat gehört nicht in `Win+V`); ein zweiter Knopf „Kopieren ohne
+Ausschluss" (zwei Knöpfe für einen Vorgang, und der Unterschied ist im
+Arbeitsalltag nicht erklärbar).
 
 ## 2026-11-19 — Bearbeiten ist erlaubt, und wer bearbeitet, liefert
 
