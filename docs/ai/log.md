@@ -1,5 +1,30 @@
 # Persistenz-Log
 
+## 2026-11-19 — Bearbeiten liefert in die Zwischenablage
+
+* **Creation**: Regel „Bearbeiten liefert" — beide Workbench-Reiter sind
+  editierbar; wer eine bearbeitete Ansicht verlässt, schreibt ihren Text
+  bedingungslos in die Zwischenablage (kein Dialog, kein Zurücklegen des alten
+  Inhalts); maßgeblich ist die zuletzt bearbeitete Ansicht; kein Einfügen.
+* **Update**: [DECISIONS.md](DECISIONS.md) — neuer Eintrag vom 2026-11-19 (23),
+  „Zwischenablage genau einmal, atomar" um den Erweiterungssatz ergänzt.
+  [DOMAIN.md](DOMAIN.md) — Invariante 8 von „genau einmal pro Diktat" auf „hält
+  immer den Text, der im Fenster steht" umgestellt; neuer Abschnitt „Ablauf:
+  Bearbeiten und Liefern". [CONTEXT.md](../../CONTEXT.md) — **Bearbeiten** neu,
+  **Lieferung** und **Workbench** nachgezogen, Abgrenzung „Kein Kopier-Knopf".
+  [HANDOFF.md](HANDOFF.md) — offener Desktop-Auslöser. [STATE.md](STATE.md) —
+  Entscheidungszahl 23.
+* **Verworfen**: Lieferung nur auf Knopfdruck, Rückfrage vor dem Überschreiben,
+  alten Inhalt aufheben, Bearbeiten nur im polierten Reiter, Poliert-Reiter
+  einfrieren.
+* **Offen**: das Ereignis „verlassen" auf dem Desktop (Fokusverlust,
+  Fensterschließen oder Knopf) — auf Android ist es die geschlossene Tastatur.
+* **Grenze**: Android bleibt bei `polished-recognition` (#166), mit getrenntem
+  Code (Entscheidung 2026-11-15); die Lieferregel gilt dort sinngemäß.
+* **Verifikation**: Dokumentenkonsistenz geprüft (kein Widerspruch in
+  `CONTEXT.md`/`DOMAIN.md`/`DECISIONS.md`); `okf-check --root docs/ai` grün
+  (6 Konzepte, 0 Warnungen).
+
 ## 2026-11-16 — Sitzungsschluss: offene Fragen der Einfüge-Entscheidung
 
 * **Update**: [HANDOFF.md](HANDOFF.md) — Schritt 3 nennt jetzt #10 (Konverter)

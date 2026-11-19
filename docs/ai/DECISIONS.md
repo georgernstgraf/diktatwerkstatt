@@ -3,13 +3,43 @@ type: Decisions
 title: Entscheidungen
 description: Getroffene Architektur- und Produktentscheidungen mit Begründung.
 tags: [entscheidungen, architektur]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:08:40Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:22:34Z }
 status: stable
 ---
 
 # Entscheidungen
 
 Neueste oben. Jeder Eintrag nennt Entscheidung, Grund und verworfene Alternative.
+
+## 2026-11-19 — Bearbeiten ist erlaubt, und wer bearbeitet, liefert
+
+**Entscheidung:** Beide Reiter der Workbench sind editierbar — das rohe **und**
+das polierte Transkript. Wer eine Ansicht bearbeitet hat und sie wieder
+verlässt, schreibt ihren Text **bedingungslos** in die Zwischenablage: kein
+Dialog, keine Rückfrage, keine Rücksicht auf den vorhandenen Inhalt. Maßgeblich
+ist die **zuletzt bearbeitete** Ansicht. Es folgt **kein** Einfügen; geliefert
+wird die Zwischenablage. Wurde nichts bearbeitet, wird auch nichts geliefert.
+Ein Rohtext-Edit verwirft das Polierte; wer danach erneut poliert, bekommt das
+Ergebnis in die Zwischenablage, sobald es vom LLM-Dienst kommt.
+**Grund:** Die Praxis mit Markor zeigt den Bedarf: die Zwischenablage ist die
+Schnittstelle, aber „alles markieren, kopieren" ist ein manuelles Ritual — und
+genau der Schritt fehlt dort, den nur die App tun kann. Die Workbench ist damit
+kein Lesefenster mehr, sondern ein **Text-Supplier**: was im Fenster steht, ist
+das, was eingefügt wird. Das ist zugleich die einzige Form, in der Invariante 8
+ohne Wettlauf hält — geschrieben wird nie ein Text, der nicht auf dem Schirm
+steht.
+**Verworfen:** Lieferung nur auf Knopfdruck (ein Klick mehr als nötig, und
+genau der Klick, den Markor verlangt); Rückfrage vor dem Überschreiben (die
+Zwischenablage ist ein Zwischenspeicher, kein Archiv); den alten Inhalt
+aufheben und nach dem Einfügen zurücklegen (Delayed Render und Read-Receipt,
+siehe 2026-11-16); Bearbeiten nur im polierten Reiter (der Rohtext ist die
+Reparaturfläche, wenn die Politur den Fehler nicht kennt); den polierten Reiter
+einfrieren (macht jede Korrektur nach dem Polieren unmöglich).
+**Offen:** Auf dem Desktop gibt es keinen „Edit-Modus", dessen Ende das Signal
+gibt. Der Auslöser — Fokusverlust, Fensterschließen oder ein Knopf — ist nicht
+entschieden (siehe `HANDOFF.md`). Auf Android ist er eindeutig: die geschlossene
+Tastatur. Dieselbe Lieferregel gilt dort in `polished-recognition` (#166), mit
+getrenntem Code (Entscheidung 2026-11-15).
 
 ## 2026-11-16 — Einfügen ist eine Einstellung, die Zwischenablage bleibt das Ergebnis
 
@@ -183,6 +213,10 @@ ist die einzige Stelle, an der die App sonst fertigen Text vernichten würde.
 Wahrheiten); nur im Fenster, Zwischenablage auf Knopfdruck (der Nutzer hat den
 Text, aber nicht dort, wo er ihn braucht); Rohtext im Fehlerfall verwerfen
 (vernichtet bezahlte Arbeit).
+**Erweitert 2026-11-19:** Die Zwischenablage wird zusätzlich bei jeder Lieferung
+aus einer bearbeiteten Ansicht geschrieben („Bearbeiten ist erlaubt, und wer
+bearbeitet, liefert"); die Atomarität gilt weiter für den Abschluss, und es wird
+weiterhin nie ein Text geschrieben, der nicht im Fenster steht.
 
 ## 2026-11-16 — Semantisches HTML auf der Zwischenablage, constrained Markdown als Format
 

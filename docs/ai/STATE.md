@@ -3,7 +3,7 @@ type: State
 title: Zustand
 description: Was existiert, was noch nicht, und wie man es prüft.
 tags: [zustand]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:51:36Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:22:34Z }
 status: stable
 ---
 
@@ -18,7 +18,7 @@ status: stable
 | `docs/ai/DOMAIN.md` | zwei Tabellen, zehn Invarianten, Abläufe, Arbeitsverzeichnis, Fehlerfälle |
 | `docs/ai/INTEGRATION.md` | Referenz: wie Handy/OpenWhispr die Windows-Bausteine lösen, mit Quellen; „was wir übernehmen" ist auf Zwischenablage und Tray zusammengeschrumpft |
 | `docs/ai/PITFALLS.md` | Referenz: Fallstricke aus Audio, STT, Textübergabe und Bedienung, mit Quellen |
-| `docs/ai/DECISIONS.md` | 22 Entscheidungen, je mit verworfener Alternative |
+| `docs/ai/DECISIONS.md` | 23 Entscheidungen, je mit verworfener Alternative |
 | `docs/ai/index.md`, `docs/ai/log.md` | OKF-Bundle-Einstieg (`okf_version: "0.2"`) und Persistenz-Chronik |
 | `docs/ai/HANDOFF.md` | Reihenfolge der nächsten Sitzung inkl. VM-Lage |
 | `docs/ai/STATE.md` | diese Datei |

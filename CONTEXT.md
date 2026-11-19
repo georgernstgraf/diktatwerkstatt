@@ -3,7 +3,7 @@ type: Glossary
 title: Vokabular
 description: Was die Wörter in diesem Repository genau bedeuten.
 tags: [wissensbasis, vokabular]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:08:40Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:22:34Z }
 status: stable
 ---
 
@@ -29,10 +29,11 @@ trägt ihn hier ein.
 | **FIFO** | Die letzten N Diktate, N aus der Konfiguration. Kommt eines hinzu, fällt das älteste samt Arbeitsverzeichnis heraus. |
 | **Zielanwendung** | Das Programm, in das der Nutzer den Text einfügt: Word, Google Docs, Notepad, ein Terminal. |
 | **Einfügen** | Das einmalige Senden von Strg+V nach dem Abschluss eines Diktats. Nie bei **Prompt anwenden**. Steht in `insert_after_dictation` (`never`, `same_window`, `always`). |
-| **Lieferung** | Das Schreiben des Ergebnisses in die Zwischenablage: `CF_HTML` und `CF_UNICODETEXT` plus Ausschlussformate. Immer, unabhängig vom Einfügen; die Zwischenablage behält den Text. |
+| **Lieferung** | Das Schreiben des Ergebnisses in die Zwischenablage: `CF_HTML` und `CF_UNICODETEXT` plus Ausschlussformate. Immer, unabhängig vom Einfügen: beim Abschluss, bei **Prompt anwenden** und beim Verlassen einer bearbeiteten Ansicht. Die Zwischenablage behält den Text. |
 | **Zwischenablage** | Die Windows-Zwischenablage. Sie ist die einzige Schnittstelle zur Zielanwendung. |
 | **Fast Path** | Hotkey → Audio → Fragmente → STT → rohes Transkript. Läuft ohne Webview und ohne JavaScript. |
-| **Workbench** | Das Fenster: Reiter „rohes Transkript" und „poliertes Transkript", Prompt-Auswahl, **Prompt anwenden**. |
+| **Bearbeiten** | Manuelle Änderung eines Transkripts in der Workbench — roh oder poliert. Ein Rohtext-Edit verwirft das Polierte. Wer eine Ansicht bearbeitet hat, **liefert** sie beim Verlassen; maßgeblich ist die zuletzt bearbeitete Ansicht. |
+| **Workbench** | Das Fenster: Reiter „rohes Transkript" und „poliertes Transkript" — **beide editierbar** —, Prompt-Auswahl, **Prompt anwenden**. |
 | **Tray-Zustand** | Einer von `IDLE`, `RECORDING`, `PAUSED`, `TRANSCRIBING`, `POLISHING`, `READY`, `POLISHED`, `FEHLER`. |
 
 ## Geerbte Begriffe
@@ -69,6 +70,10 @@ die Audioseite, nicht die Textseite:
   Zustand, der lügen kann, existiert nicht.
 - **Keine Herkunftsangabe am polierten Transkript.** Welcher Prompt und
   welches Modell es erzeugt haben, wird nicht gespeichert.
+- **Kein Kopier-Knopf.** Die Lieferung ist ein Ereignis, kein Knopf: sie
+  passiert beim Abschluss, bei **Prompt anwenden** und beim Verlassen einer
+  bearbeiteten Ansicht. Es gibt keinen zweiten Weg, Text in die Zwischenablage
+  zu bringen.
 
 ## Zustände und Übergänge
 

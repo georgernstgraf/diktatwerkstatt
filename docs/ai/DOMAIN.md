@@ -3,7 +3,7 @@ type: Domain
 title: Domänenmodell
 description: Tabellen, Invarianten, Abläufe und Arbeitsverzeichnis der Diktatwerkstatt.
 tags: [domain, datenmodell]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:08:40Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:22:34Z }
 status: stable
 ---
 
@@ -95,10 +95,12 @@ audio/42/
    automatische Neupolitur.
 7. **Ein poliertes Transkript pro Diktat.** **Prompt anwenden** überschreibt es
    vollständig.
-8. **Die Zwischenablage wird genau einmal pro Diktat geschrieben**, atomar mit
-   dem Erscheinen des Textes im Fenster. Ein optionales Einfügen folgt
-   unmittelbar danach und schreibt sie nicht neu; **Prompt anwenden** fügt nie
-   ein.
+8. **Die Zwischenablage hält immer genau den Text, der im Fenster steht.** Sie
+   wird beim Abschluss atomar mit dem Erscheinen des Textes geschrieben und
+   danach bei jeder **Lieferung** neu — nie ein Text, den der Nutzer nicht
+   sieht. Ein optionales Einfügen folgt nur dem Abschluss unmittelbar und
+   schreibt sie nicht neu; **Prompt anwenden** und das Verlassen einer
+   bearbeiteten Ansicht fügen nie ein.
 9. **Der FIFO hält höchstens N Diktate** (N aus `config.json`). Kommt eines
    hinzu, fällt das älteste samt Arbeitsverzeichnis heraus. Es gibt kein
    Archiv und keine Pagination.
@@ -146,6 +148,34 @@ transkribiert hat:
 `diktat` anlegen, `audio_dir` bleibt `NULL`, der eingefügte Text wird
 `raw_text`. Danach ist das Diktat sofort append- und polierfähig. Woher der
 Text kam, wird **nicht** gespeichert.
+
+## Ablauf: Bearbeiten und Liefern
+
+Beide Reiter sind editierbar. Das Bearbeiten folgt diesen Regeln:
+
+- Ein Edit im **rohen** Transkript verwirft das polierte (Invariante 6) —
+  sichtbar, ohne Rückfrage und ohne automatische Neupolitur.
+- Ein Edit im **polierten** Transkript überschreibt es; es bleibt bei genau
+  einem Slot.
+- Verlässt der Nutzer eine bearbeitete Ansicht, geht deren Text **sofort und
+  bedingungslos** in die Zwischenablage: ohne Rückfrage, ohne Rücksicht auf den
+  vorhandenen Inhalt, in beiden Formaten und mit den Ausschlussformaten aus
+  „Lieferung". Maßgeblich ist die **zuletzt bearbeitete** Ansicht.
+- Es folgt **kein** Einfügen. Einfügen ist an den Abschluss gebunden.
+- Wurde nichts bearbeitet, wird auch nichts geliefert; die Zwischenablage
+  behält, was sie hat.
+- Nach einem Rohtext-Edit setzt **Polieren** die Zwischenablage, den zweiten
+  Reiter und `polished_text` in einem Zug, sobald die Antwort da ist — wie beim
+  Abschluss.
+
+Der Auslöser von „verlassen" ist auf dem Desktop offen (Fokusverlust,
+Fensterschließen oder ein Knopf, siehe `HANDOFF.md`); auf Android ist es die
+geschlossene Tastatur. Die Lieferregel gilt unabhängig davon, nur ihr Ereignis
+fehlt noch.
+
+Scheitert das Schreiben, weil eine andere Anwendung die Zwischenablage hält,
+bleibt der Text im Fenster und der Fehler wird dort gemeldet — kein stiller
+Fehlschlag.
 
 ## Lieferung
 

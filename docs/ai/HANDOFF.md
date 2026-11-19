@@ -3,7 +3,7 @@ type: Handoff
 title: Übergabe
 description: Was die nächste Sitzung zuerst tut, in welcher Reihenfolge, und was schon bekannt ist.
 tags: [wissensbasis, handoff]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:51:36Z }
+generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:22:34Z }
 status: stable
 ---
 
@@ -74,6 +74,12 @@ Alle drei brauchen keine Hardware und kein Netz, laufen also auch auf Linux.
 
 ## Offene Entscheidungen
 
+- **Auslöser der Lieferung beim Bearbeiten.** Die Regel ist entschieden
+  (beide Reiter editierbar, Verlassen liefert bedingungslos; `DOMAIN.md`,
+  Abschnitt „Ablauf: Bearbeiten und Liefern", und `DECISIONS.md` vom
+  2026-11-19). Offen ist nur das **Ereignis** auf dem Desktop, der keinen
+  Edit-Modus kennt: Fokusverlust, Fensterschließen oder ein Knopf. Betrifft
+  #7 (Workbench) und die Abnahmekriterien von #8 (Lieferung).
 - **Hotkey-Mechanik** — Leertaste/Enter mit eigenem Hook (dann bleiben der
   Hook-Block in #1 und das Abnahmekriterium „Space im Pausenzustand" in #8)
   oder ein dritter Hotkey für Pause/Fortsetzen ohne Hook? Hängt an der Frage,
