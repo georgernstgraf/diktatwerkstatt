@@ -11,16 +11,16 @@ Bundles, weil es das Glossar für das ganze Repository ist.
 
 ## Aktive Dateien
 
-* [HANDOFF.md](HANDOFF.md) - Wo die nächste Sitzung anfängt: Reihenfolge, VM-Lage auf think, bekannte Fallen
+* [HANDOFF.md](HANDOFF.md) - Wo die nächste Sitzung anfängt: Provisioning (#19), Spikes Linux/macOS/Windows, bekannte Fallen
 * [STATE.md](STATE.md) - Was existiert, was nicht, und wie man es prüft
-* [DOMAIN.md](DOMAIN.md) - Zwei Tabellen, zehn Invarianten, Abläufe, Arbeitsverzeichnis, Fehlerfälle
-* [DECISIONS.md](DECISIONS.md) - 21 Architektur- und Produktentscheidungen, je mit verworfener Alternative
-* [PITFALLS.md](PITFALLS.md) - Hart erarbeitete Fallstricke aus Audio, STT, Textübergabe und Bedienung, mit Belegen
-* [INTEGRATION.md](INTEGRATION.md) - Wie Handy und OpenWhispr Hotkey, Hook, Einfügen, Tray und Installer unter Windows lösen — und was wir übernehmen
+* [DOMAIN.md](DOMAIN.md) - Zwei Tabellen, zehn Invarianten, Fähigkeitsleiter, Abläufe, Lieferformate je Plattform, Fehlerfälle
+* [DECISIONS.md](DECISIONS.md) - 34 Architektur- und Produktentscheidungen (darunter E1–E10: drei Ziele, kein Tastenhook, Fähigkeitsleiter), je mit verworfener Alternative
+* [PITFALLS.md](PITFALLS.md) - Hart erarbeitete Fallstricke aus Audio, STT, Textübergabe, Bedienung, Linux/Wayland und macOS, mit Belegen
+* [INTEGRATION.md](INTEGRATION.md) - Wie Handy und OpenWhispr Hotkey, Einfügen, Tray und Installer lösen — mit Linux- und macOS-Spalte und was wir übernehmen
 
 ## Glossar und Einstieg außerhalb des Bundles
 
-* [../../CONTEXT.md](../../CONTEXT.md) - Vokabular: was die Wörter hier genau bedeuten
+* [../../CONTEXT.md](../../CONTEXT.md) - Vokabular: was die Wörter hier genau bedeuten, inkl. Plattformschale, Fähigkeitsleiter, Diktierplatz
 * [../../README.md](../../README.md) - Beschreibung, Architekturbild, Lizenz
 * [../../AGENTS.md](../../AGENTS.md) - Arbeitsregeln, Stack, Verifikation
 

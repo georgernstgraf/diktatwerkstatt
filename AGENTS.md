@@ -5,15 +5,18 @@ Arbeitsregeln für dieses Repository. Globale Regeln stehen in
 
 ## Projekt
 
-Diktatwerkstatt ist ein Windows-Diktierwerkzeug für Menschen, die professionelle
-Texte schreiben, ohne zu tippen: globaler Hotkey, Aufnahme, Transkription über
-eine OpenAI-kompatible API, optionale Politur durch ein LLM, Ausgabe über die
-Zwischenablage in jede Zielanwendung. Das Tray ist die Bedienoberfläche; das
-Fenster dient dem Nachlesen, Polieren und **Korrigieren** — wer dort eine
-Ansicht bearbeitet, liefert sie beim Verlassen in die Zwischenablage, und ein
-Knopf **In die Zwischenablage** liefert den sichtbaren Reiter jederzeit. FIFO
-der letzten Diktate, kein Archiv, keine Cloud außer der ausdrücklich
-konfigurierten API.
+Diktatwerkstatt ist ein Diktierwerkzeug für Menschen, die professionelle Texte
+schreiben, ohne zu tippen — **für Windows, Linux und macOS**: ein geteilter
+Rust-Kern und drei dünne Plattformschalen. Nicht fokussiert steuern drei globale
+Hotkeys (diktieren roh, diktieren poliert, pausieren/fortsetzen), im fokussierten
+Fenster zusätzlich Space und Enter; **kein globaler Tastenhook**. Aufnahme,
+Transkription über eine OpenAI-kompatible API, optionale Politur durch ein LLM,
+Ausgabe über die Systemzwischenablage in jede Zielanwendung. Das Tray ist die
+Bedienoberfläche; das Fenster dient dem Nachlesen, Polieren und **Korrigieren** —
+wer dort eine Ansicht bearbeitet, liefert sie beim Verlassen in die
+Zwischenablage, und ein Knopf **In die Zwischenablage** liefert den sichtbaren
+Reiter jederzeit. FIFO der letzten Diktate, kein Archiv, keine Cloud außer der
+ausdrücklich konfigurierten API.
 
 ## Knowledge Bootstrap
 
@@ -25,7 +28,7 @@ Vor jeder Aufgabe zuerst den Wissenseinstieg lesen:
 3. `docs/ai/DOMAIN.md` — Tabellen, Invarianten, Abläufe
 4. `docs/ai/DECISIONS.md` — Entscheidungen mit verworfener Alternative
 5. `docs/ai/PITFALLS.md` — Fallstricke, bevor du einen Baustein anfasst
-6. `docs/ai/INTEGRATION.md` — wie die Referenzprojekte es unter Windows lösen
+6. `docs/ai/INTEGRATION.md` — wie die Referenzprojekte es unter Windows, Linux und macOS lösen
 7. `CONTEXT.md` — Vokabular (liegt außerhalb des Bundes)
 
 Enthält `HANDOFF.md` offene Aufgaben, werden sie vor neuer Arbeit erledigt,
@@ -50,28 +53,38 @@ geladen:
 
 ## Status
 
-**Spezifikationsphase, ausgegrillt.** Es wird kein Produktcode geschrieben, bevor
-der Spike (#1) die vier Windows-Bausteine belegt hat. Das Grill-Ergebnis steht
-als Kommentar an Epic #3 und ist in `CONTEXT.md`, `DOMAIN.md` und `DECISIONS.md`
-eingearbeitet.
+**Doku-Phase, kein Code.** Es wird kein Produktcode geschrieben, bevor die
+Spikes die Bausteine belegt haben — Reihenfolge: Provisioning (#19), Linux-Spike
+(#12), macOS-Spike (#13), Windows-Spike (#1); hardwarefrei parallel #4/#5/#10.
+Das Grill-Ergebnis steht als Kommentar an Epic #3 und ist in `CONTEXT.md`,
+`DOMAIN.md` und `DECISIONS.md` eingearbeitet; die Beschlusslage vom 2026-11-16
+(drei Ziele, kein Tastenhook, Fähigkeitsleiter) in `docs/ai/DECISIONS.md`, E1–E10.
 
 ## Stack
 
-- **Rust** für Kern und Plattformnähe: Audio (`cpal`), Hook
-  (`global-hotkey` bzw. `WH_KEYBOARD_LL`), Zwischenablage (`arboard`), Tray
-  (`tray-icon`), Win32 (`windows`).
-- **Tauri + WebView2** für die Workbench, mit `windows: []` als Startzustand.
+- **Rust** für Kern und Plattformnähe: Audio (`cpal`), globale Hotkeys (kein
+  Hook), Zwischenablage (eigene Plattformmodule; `arboard` kann weder
+  Privatformate noch den `CF_HTML`-Umschlag), Tray (`tray-icon`), Win32
+  (`windows`).
+- **Tauri mit drei Webviews** für die Workbench — WebView2 (Windows), WebKitGTK
+  (Linux), WKWebView (macOS) —, mit `windows: []` als Startzustand. Der Kern
+  läuft ohne jede Webview.
 - **SQLite** über `rusqlite` (gebündelt). Kein ORM.
 
 ## Aufbau
 
 ```
-crates/core/        Domäne. Keine UI-, keine windows-*, keine Tauri-Abhängigkeit.
-apps/desktop/       Tauri-App: Tray, Hotkeys, Clipboard, Fenster.
+crates/core/        Domäne. Keine UI-, keine Plattform-Abhängigkeit, kein
+                    cfg(target_os), kein enum Platform.
+apps/desktop/       Tauri-App: Tray, Hotkeys, Zwischenablage, Fenster — je Ziel
+                    eine dünne Schale um denselben Kern.
 ```
 
-`crates/core` muss ohne laufende App testbar sein. Wer eine Abhängigkeit nach
-`core` zieht, die nur auf Windows kompiliert, hat die Schichtung gebrochen.
+`crates/core` muss ohne laufende App und auf jedem Ziel testbar sein. Was eine
+Plattform kann, meldet die Schale beim Start als **Fähigkeitsleiter**
+(`docs/ai/DOMAIN.md`); der Kern leitet sein Verhalten daraus ab. Wer eine
+Abhängigkeit nach `core` zieht, die nur auf einer Plattform kompiliert, oder
+dort `cfg(target_os)` schreibt, hat die Schichtung gebrochen.
 
 ## Verifikation vor jedem Commit
 
@@ -88,6 +101,12 @@ diese Stelle die Konsistenzprüfungen der Dokumente: `CONTEXT.md` ist die Quelle
 der Begriffe, `DOMAIN.md` die Quelle der Invarianten, `DECISIONS.md` darf keine
 dazu widersprüchliche Entscheidung enthalten. Ein Doku-Commit ist grün, wenn
 keine Vokabel und keine Invariante an zwei Stellen verschieden definiert ist.
+
+Die Toolchain ist nicht überall vorhanden: auf einem frischen Linux-Host fehlen
+`rustup`/`cargo` (Befund auf claw, 2026-11-16 — Drift, der mit dem ersten Crate
+auffällt). #19 (Provisioning) richtet sie ein, dazu `libwebkit2gtk-4.1-dev`,
+`libgtk-3-dev`, `librsvg2-dev`, `libayatana-appindicator3-dev`, `patchelf`,
+`libfuse2` und `appimagetool`. Bis dahin gilt die Dokumentenprüfung.
 
 ## Commits und Issues
 
@@ -107,17 +126,22 @@ keine Vokabel und keine Invariante an zwei Stellen verschieden definiert ist.
 ## Daten und Geheimnisse
 
 - API-Schlüssel nie in der Datenbank, nie im Repository. Windows Credential
-  Manager, unter Linux der Secret-Service.
+  Manager, unter Linux der Secret-Service, unter macOS der Schlüsselbund.
 - Diktate sind Mandantendaten. Keine Telemetrie, keine Protokolle mit
   Textinhalten, keine Cloud außer der ausdrücklich konfigurierten STT-/LLM-API.
-- Beim Schreiben in die Zwischenablage immer die History-/Cloud-Ausschlussformate
-  setzen (siehe `docs/ai/DOMAIN.md`, Abschnitt Lieferung) — **auch beim Knopf
-  „In die Zwischenablage"**. Der Knopf ist kein bewusstes „Transkript kopieren":
-  die Quelle des Textes ist dieselbe wie bei der Automatik, ein Mandantendiktat
-  gehört nicht in `Win+V`. Eine solche bewusste Aktion gibt es derzeit nicht;
-  sobald es sie gibt, gilt der Ausschluss für sie **nicht** — sonst ist der Text
-  nach dem Kopieren nicht in der History des Nutzers (siehe
-  `docs/ai/INTEGRATION.md`).
+- Beim Schreiben in die **Systemzwischenablage** die History-/Cloud-Ausschlussformate
+  setzen, soweit die Plattform sie kennt (siehe `docs/ai/DOMAIN.md`, „Formate und
+  Ausschluss je Plattform") — **auch beim Knopf „In die Zwischenablage"**. Der
+  Knopf ist kein bewusstes „Transkript kopieren": die Quelle des Textes ist
+  dieselbe wie bei der Automatik, ein Mandantendiktat gehört nicht in `Win+V`.
+  Unter Windows sind die Marker erzwungen (`CanIncludeInClipboardHistory=0`,
+  `CanUploadToCloudClipboard=0`, `ExcludeClipboardContentFromMonitorProcessing`);
+  macOS kennt die De-facto-Konvention `org.nspasteboard.ConcealedType`; unter
+  Linux gibt es praktisch nichts (KDE: `x-kde-passwordManagerHint`) — dort wird
+  **nicht** behauptet, dass nichts in einer History landet. Eine bewusste Aktion
+  „Transkript kopieren" gibt es derzeit nicht; sobald es sie gibt, gilt der
+  Ausschluss für sie **nicht** — sonst ist der Text nach dem Kopieren nicht in
+  der History des Nutzers (siehe `docs/ai/INTEGRATION.md`).
 
 ## Dokumentation
 
@@ -159,7 +183,9 @@ keine Vokabel und keine Invariante an zwei Stellen verschieden definiert ist.
 ## Repository und Kontakt
 
 - GitHub: `georgernstgraf/diktatwerkstatt`
-- Issues: GitHub Issues; Epic #3 mit den Sub-Issues #1, #4–#9 (#2 geschlossen)
+- Issues: GitHub Issues; Epic #3 mit den Sub-Issues #1, #4–#13, #19 (#2 geschlossen).
+  Reihenfolge: #19 Provisioning → #12 Linux-Spike → #13 macOS-Spike → #1
+  Windows-Spike; hardwarefrei parallel #4/#5/#10.
 - Eigentümer: Georg Graf <grafg@spengergasse.at>
 
 ## Sprache

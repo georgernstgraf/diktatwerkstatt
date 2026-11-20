@@ -1,5 +1,58 @@
 # Persistenz-Log
 
+## 2026-11-20 — Drei Ziele, Hook-freie Bedienung, Fähigkeitsleiter (#11)
+
+* **Creation**: Beschlusslage E1–E10 des Eigentümers (2026-11-16) in die Doku
+  eingearbeitet. Drei Ziele (Windows, Linux, macOS), ein Kern, drei dünne
+  **Plattformschalen**; **kein globaler Tastenhook** — drei globale Hotkeys
+  (diktieren roh, diktieren poliert, pausieren/fortsetzen), Space und Enter nur
+  im **Diktierplatz**; **Fähigkeitsleiter** statt Plattformweichen im Kern;
+  Zwischenablage-Ausschluss dreistufig; `Delivery { html, text }` trennt Fragment
+  und `CF_HTML`-Umschlag; App-IDs `at.priv.graf.Diktatwerkstatt` (vorläufig);
+  Name bleibt `diktatwerkstatt`.
+* **Update**: [DECISIONS.md](DECISIONS.md) — zehn Einträge E1–E10 obenauf; die
+  Einträge „Rust-Kern + Tauri/WebView2", „Einfügen ist eine Einstellung",
+  „Semantisches HTML auf der Zwischenablage" und „Politur pro Diktat, über zwei
+  Hotkeys" mit Amendierungsabsatz. [CONTEXT.md](../../CONTEXT.md) —
+  **Plattformschale**, **Fähigkeitsleiter**, **Diktierplatz**, **Diktier-Hotkey**,
+  **Pause-Hotkey** neu; **Zwischenablage** = Systemzwischenablage; Übergangstabelle
+  `RECORDING→PAUSED` mit zwei Auslösern. [DOMAIN.md](DOMAIN.md) — „Lieferung"
+  dreiteilig (gemeinsam / Windows / macOS und Linux) mit Ausschluss-Tabelle,
+  „Ablauf: roh" Schritt 5 neu, neue Sektion **Fähigkeitsleiter**, Einfüge-Regel
+  „nie ins eigene Fenster"; die zehn Invarianten unverändert.
+  [PITFALLS.md](PITFALLS.md) — Hook-Passagen als „entfällt" markiert, neue
+  Abschnitte **Linux und Wayland** und **macOS**. [INTEGRATION.md](INTEGRATION.md)
+  — Linux- und macOS-Spalte, Korrektur Nr. 1 als „entfällt", `handy-keys` als
+  Abgrenzung. [../../README.md](../../README.md) — „Windows-Hilfsprogramm" →
+  drei Ziele, ein Kern. [../../AGENTS.md](../../AGENTS.md) — Stack „Tauri mit drei
+  Webviews", Ausschlussregel mit Linux-Ausnahme, Status Doku-Phase, Issues
+  #1/#4–#13/#19. [HANDOFF.md](HANDOFF.md) und [STATE.md](STATE.md) — Reihenfolge
+  Provisioning (#19) → Linux-Spike (#12) → macOS-Spike (#13) → Windows-Spike (#1).
+  [index.md](index.md) — Beschreibungen nachgezogen.
+* **Entfällt (markiert, nicht gelöscht)**: „Taste schlucken" via `WH_KEYBOARD_LL`
+  und das eigene Modul (~300 Zeilen); „der Low-Level-Hook ist bei fokussierter
+  Admin-App blind" samt „für Push-to-talk den Hook"; „Space darf nur im Zustand
+  `RECORDING` geschluckt werden"; „Zwischenablage — die Windows-Zwischenablage";
+  „Leertaste … wird nur in `RECORDING` geschluckt"; die offene Hotkey-Mechanik
+  und Push-to-talk in `HANDOFF.md`; „WebView2" als Stackname.
+* **Verworfen**: Windows-only; Windows+Linux ohne macOS; Electron; getrennte Apps
+  je Plattform; Plattformweichen im Kern (`cfg(target_os)`, `enum Platform`,
+  Feature-Flags); `WH_KEYBOARD_LL`; `evdev`/`/dev/input`; Hook nur unter Windows;
+  Push-to-talk; `always` als Ersatz für fehlendes `foreground_window`; Ausschluss
+  als „überall gelöst"; alles in einem `cf_html()`; nur `.deb` oder nur AppImage;
+  Flatpak.
+* **Offen**: Reihenfolge der Auslieferung (Architektur ja, Termin nein);
+  App-ID endgültig mit der Namensfrage; Desktop-Auslöser von „verlassen" für die
+  Bearbeiten-Lieferung; Windows-Installer (NSIS allein oder MSI zusätzlich).
+* **Drift gebogen**: `AGENTS.md` verlangte `cargo fmt/clippy/test` vor jedem
+  Commit, während auf claw weder `cargo` noch `rustup` existiert
+  (Provisioning-Befund 2026-11-16). Die Toolchain-Lücke steht jetzt in
+  `AGENTS.md` und `STATE.md` und ist #19 zugeordnet.
+* **Verifikation**: zehn Prüfungen aus #11 — Doku-Diff, neue Begriffe in
+  `CONTEXT.md`, „Windows-Zwischenablage", „geschluckt", `WH_KEYBOARD_LL`,
+  `cfg(target_os)`, E1–E10, „Windows-only"-Reste, OKF-Envelopes, Log-Eintrag —
+  alle grün.
+
 ## 2026-11-19 — Kopier-Knopf als zweiter Weg
 
 * **Creation**: Knopf **„In die Zwischenablage"** in der Workbench — liefert den

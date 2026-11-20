@@ -3,23 +3,24 @@ type: Domain
 title: Domänenmodell
 description: Tabellen, Invarianten, Abläufe und Arbeitsverzeichnis der Diktatwerkstatt.
 tags: [domain, datenmodell]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:28:38Z }
+generated: { by: opencode/general, at: 2026-11-20T16:23:16Z }
 status: stable
 ---
 
 # Domänenmodell
 
 Zwei Tabellen. Eine SQLite-Datei. Dazu eine Konfigurationsdatei und ein
-Arbeitsverzeichnis pro laufendem Diktat.
+Arbeitsverzeichnis pro laufendem Diktat. Dasselbe Modell gilt auf allen drei
+Zielen — Windows, Linux, macOS; verschieden ist nur die **Plattformschale**.
 
 ## Speicherorte
 
 | Was | Wo |
 |---|---|
-| Datenbank | `%LOCALAPPDATA%\diktatwerkstatt\diktatwerkstatt.db` (Windows), `~/.local/share/diktatwerkstatt/diktatwerkstatt.db` (Linux) |
+| Datenbank | `%LOCALAPPDATA%\diktatwerkstatt\diktatwerkstatt.db` (Windows), `~/.local/share/diktatwerkstatt/diktatwerkstatt.db` (Linux), `~/Library/Application Support/diktatwerkstatt/diktatwerkstatt.db` (macOS) |
 | Konfiguration | `config.json` **neben** der Datenbank, nicht darin |
 | Arbeitsverzeichnisse | `<Datenverzeichnis>/audio/<diktat-id>/` — temporär, verschwindet nach dem Abschluss |
-| API-Schlüssel | Windows Credential Manager bzw. Secret Service — **nie** in der Datenbank oder in `config.json` |
+| API-Schlüssel | Windows Credential Manager bzw. Secret Service (Linux) bzw. Schlüsselbund (macOS) — **nie** in der Datenbank oder in `config.json` |
 
 Die Trennung von Datenbank und Konfiguration ist Absicht: „Daten löschen" darf
 die API-Konfiguration nicht mitnehmen, und eine Einstellungsdatei soll man von
@@ -109,21 +110,52 @@ audio/42/
 10. **Das rohe Transkript wird nie umformatiert gespeichert** — kein Wrapping,
     keine Normalisierung, keine stille Korrektur.
 
+## Fähigkeitsleiter
+
+Der Kern kennt **keine** Plattform: kein `cfg(target_os)`, kein
+`enum Platform`. Jede **Plattformschale** meldet beim Start, was sie kann; der
+Kern leitet sein Verhalten daraus ab.
+
+| Fähigkeit | Werte | Was sie entscheidet |
+|---|---|---|
+| `global_hotkey` | ja / nein | ob die drei Hotkeys (diktieren roh, diktieren poliert, pausieren/fortsetzen) registriert werden können |
+| `foreground_window` | ja / nein | `same_window` — ohne diese Fähigkeit wird der Modus `never`, nie `always` |
+| `insert_keystroke` | ja / nein / ja-mit-freigabe | ob überhaupt eingefügt werden kann; `ja-mit-freigabe` heißt: erst nach einer Freigabe durch den Nutzer |
+| `clipboard_envelope` | `cf_html` / `html_fragment` | ob die Schale den `CF_HTML`-Umschlag baut (Windows) oder das nackte Fragment schreibt (macOS, Linux) |
+| `clipboard_exclusion` | `api` / `convention` / `keine` | was als History-/Cloud-Ausschluss zugesagt werden darf (siehe „Lieferung") |
+| `tray` | ja / mit-erweiterung | Tray-Zustand; `mit-erweiterung` heißt: Overlay-Pille zusätzlich (Windows 11) |
+| `autostart`, `secret_storage`, `audio_host` | plattformabhängig | Autostart-Weg, Ablage der API-Schlüssel, Audiogerät |
+
+**Degradationsregel:** Was die Plattform nicht kann, fällt auf die **sichere
+Seite**. `same_window` ohne `foreground_window` wird `never`, nie `always` — nie
+einzufügen ist immer richtig, der Text liegt in der Zwischenablage. Es gibt
+keinen Weg, auf dem eine fehlende Fähigkeit zu `always` führt.
+
+Die Fähigkeitsleiter ist die Testsuite: eine Fake-Plattform mit
+`{foreground_window: nein, insert_keystroke: nein}` ist Wayland, eine mit
+`{ja, ja}` ist X11 oder Windows. Derselbe Kern, zwei Sätze, zwei erwartete
+Verhalten — ohne Hardware.
+
 ## Ablauf: roh
 
-1. Hotkey „diktieren roh" → Aufnahme beginnt; ein `diktat` entsteht mit
-   `audio_dir`, `raw_text` ist leer.
+1. Diktier-Hotkey „diktieren roh" → Aufnahme beginnt; ein `diktat` entsteht mit
+   `audio_dir`, `raw_text` ist leer. Der Hotkey ist ein **Umschalter**: der
+   erste Druck startet, der zweite beendet.
 2. Alle ~21 s wird ein Fragment geschnitten und als `NNN.wav` abgelegt.
 3. Das Fragment wird an den STT-Dienst geschickt, mit exponentiellem Backoff
    bis es angenommen ist. Das Transkript erscheint sofort im Reiter „rohes
    Transkript".
 4. Antwort da → `NNN.txt.tmp` schreiben, `rename`, **dann** `NNN.wav` löschen.
-5. Leertaste pausiert und setzt fort. Enter beendet die Aufnahme.
-6. Nach Enter: warten, bis das letzte Fragment als `.txt` vorliegt. Dann
+5. Space (Pause/Fortsetzen) und Enter (Ende) gelten **nur im Diktierplatz**,
+   also im fokussierten Workbench-Fenster. Ohne Fensterfokus pausiert der
+   Pause-Hotkey, und ein Diktier-Hotkey beendet die Aufnahme — während einer
+   Aufnahme beenden **beide**. Es wird keine fremde Taste geschluckt: kein
+   Tastenhook, kein Push-to-talk.
+6. Nach dem Ende: warten, bis das letzte Fragment als `.txt` vorliegt. Dann
    verketten, `raw_text` schreiben, **dann** die Zwischenablage füllen, **dann**
    das Verzeichnis löschen und `audio_dir` auf `NULL`. Tray: `READY`. Danach
-   folgt das optionale Einfügen, wenn `insert_after_dictation` es erlaubt und
-   das Fenster dasselbe ist.
+   folgt das optionale Einfügen, wenn `insert_after_dictation` es erlaubt, die
+   Fähigkeiten es zulassen und das Fenster dasselbe ist.
 
 ## Ablauf: poliert
 
@@ -186,25 +218,51 @@ Fehlschlag.
 
 ## Lieferung
 
-- In die Zwischenablage gehen **beide** Formate: `CF_HTML` (semantisches HTML,
-  damit die Zielanwendung ihre eigenen Formatvorlagen anwendet) und
-  `CF_UNICODETEXT`.
-- Dazu werden immer `CanIncludeInClipboardHistory=0`,
-  `CanUploadToCloudClipboard=0` und `ExcludeClipboardContentFromMonitorProcessing`
-  gesetzt. Diese Formate wirken **global** für den gesamten Inhalt, nicht je
-  Datenformat — `CF_HTML` daneben zu legen hebt den Ausschluss nicht auf.
+Die Lieferung ist **eine** Funktion des Kerns — und **drei** Schreibvorgänge in
+den Schalen:
+
+`deliver(markdown) -> Delivery { html, text }`. `html` ist ein **semantisches
+Fragment** — Absatz, Überschrift, ungeordnete Liste, fett. `text` ist derselbe
+Inhalt ohne Markdown, geordnete Listen als `1. …`. Wie das Fragment auf die
+**Systemzwischenablage** kommt, entscheidet die Plattformschale
+(`clipboard_envelope`, `clipboard_exclusion`); der Kern kennt weder `CF_HTML`
+noch ein Pasteboard.
+
+Für alle drei Ziele gleich:
+
+- Beide Formate gehen **zusammen** in die Zwischenablage: das HTML-Fragment und
+  der reine Text. Nie nur Text — reiner Text transportiert keine Struktur.
 - Das polierte Transkript darf nur Absatz, Überschrift, ungeordnete Liste und
   fett enthalten. **Geordnete Listen werden als Text mit ihren Ziffern
   ausgegeben**, weil deutsche Rubrum-Nummerierung Text ist und keine Struktur.
   Vor dem Schreiben wird validiert; ein Verstoß wird gemeldet und nicht
   stillschweigend repariert.
-- Nach dem Schreiben darf die App **einmal** Strg+V senden, gesteuert durch
-  `insert_after_dictation` (`never`, `same_window`, `always`; Default
-  `same_window`). Bei `same_window` wird nur eingefügt, wenn das
-  Vordergrundfenster noch dasselbe ist wie beim Abschluss; kein Fenster wird
-  reaktiviert. Die Zwischenablage behält den Text in jedem Fall.
+- Nach dem Schreiben darf die App **einmal** Strg+V senden (macOS: Cmd+V),
+  gesteuert durch `insert_after_dictation` (`never`, `same_window`, `always`;
+  Default `same_window`). Bei `same_window` wird nur eingefügt, wenn das
+  Vordergrundfenster noch dasselbe ist wie beim Abschluss — das setzt die
+  Fähigkeit `foreground_window` voraus, sonst wird der Modus `never`; kein
+  Fenster wird reaktiviert. **Nie ins eigene Fenster:** ist die Workbench das
+  Vordergrundfenster, unterbleibt das Einfügen, auch bei `always`. Die
+  Zwischenablage behält den Text in jedem Fall.
 
-### `CF_HTML`
+### Formate und Ausschluss je Plattform
+
+| Plattform | Formate | Ausschluss aus History/Cloud | Belastbarkeit auf diesem Ziel |
+|---|---|---|---|
+| Windows | `CF_HTML` + `CF_UNICODETEXT` | harte API: `CanIncludeInClipboardHistory=0`, `CanUploadToCloudClipboard=0`, `ExcludeClipboardContentFromMonitorProcessing` | **erzwungen** — der Marker gilt für den gesamten Inhalt |
+| macOS | `public.html` + `public.utf8-plain-text` | De-facto-Konvention `org.nspasteboard.ConcealedType` (+ `TransientType`) | **Konvention** — von Maccy, PastePal u. a. honoriert, vom OS nicht erzwungen |
+| Linux | `text/html` + `text/plain;charset=utf-8` | praktisch nichts; KDE kennt `x-kde-passwordManagerHint`, GNOME hat keine eingebaute History | **keine Zusage** — die Doku verspricht dort keinen Ausschluss |
+
+- Die Ausschlussformate wirken **global** für den gesamten Inhalt, nicht je
+  Datenformat — `CF_HTML` daneben zu legen hebt den Ausschluss nicht auf.
+- Tauris `writeSecret()` markiert plattformgerecht, kann aber kein HTML mit
+  Markern; deshalb bleiben eigene Plattformmodule für die Lieferung.
+
+### Windows: der `CF_HTML`-Umschlag
+
+Der Umschlag ist eine Funktion des **Windows-Schreibers**, nicht der Domäne:
+Linux (`text/html`) und macOS (`public.html`) nehmen das nackte Fragment.
 
 - Format über `RegisterClipboardFormat("HTML Format")`: ASCII-Kopfzeile, dann
   das HTML.
@@ -220,6 +278,16 @@ Fehlschlag.
 - `CF_UNICODETEXT` trägt denselben Inhalt ohne Markdown; geordnete Listen als
   `1. …`.
 
+### macOS und Linux: das nackte Fragment
+
+- macOS: `public.html` und `public.utf8-plain-text`, dazu
+  `org.nspasteboard.ConcealedType` (und `TransientType`) setzen. Das OS erzwingt
+  den Marker nicht; Clipboard-Manager halten sich daran.
+- Linux: `text/html` und `text/plain;charset=utf-8`. Einen wirksamen
+  History-Ausschluss gibt es praktisch nicht; KDE kennt
+  `x-kde-passwordManagerHint`, GNOME hat keine eingebaute History. Die Zusage
+  lautet hier deshalb **nicht** „nichts landet in der History".
+
 ## Fehlerfälle
 
 | Fall | Verhalten |
@@ -228,6 +296,7 @@ Fehlschlag.
 | Modell kann den Text nicht | kein Abschneiden; der Rohtext geht als Rückfall in die Zwischenablage; Tray `FEHLER` |
 | Schlüssel abgelehnt | wie oben, plus Handlungsanweisung im Fenster |
 | nur Stille aufgenommen | leere `.txt` je Fragment, `raw_text` leer, nichts in die Zwischenablage, Meldung |
+| Plattform kann nicht einfügen (Fähigkeit fehlt) | kein Einfügen und **kein** Fehler — der Text bleibt in der Zwischenablage; `same_window` fällt auf `never` |
 | Absturz mitten in der Aufnahme | das Verzeichnis bleibt; beim Start werden die restlichen `.wav` transkribiert **und** der Abschluss läuft |
 | Diktat fällt aus dem FIFO | das Arbeitsverzeichnis wird mitgelöscht |
 
@@ -235,9 +304,9 @@ Fehlschlag.
 
 Beim Start werden alle Diktate mit gesetztem `audio_dir` gefunden. Für jedes
 werden die verbliebenen `.wav` transkribiert; danach läuft derselbe Abschluss
-wie nach Enter (verketten, `raw_text` schreiben, Verzeichnis entfernen). Ohne
-diesen zweiten Schritt bliebe das Diktat in einer Sackgasse hängen: alle
-Fragmente erledigt, aber kein Text und kein Ende.
+wie nach dem Ende der Aufnahme (verketten, `raw_text` schreiben, Verzeichnis
+entfernen). Ohne diesen zweiten Schritt bliebe das Diktat in einer Sackgasse
+hängen: alle Fragmente erledigt, aber kein Text und kein Ende.
 
 ## Audio
 
@@ -254,3 +323,4 @@ Kotlin-`:analyzer` die Desktop-Sitzungen mitlesen kann.
 - Blockgrenzen, `seq`, Übergabezähler.
 - Konten, Synchronisation, Cloud.
 - Einfüge-Protokoll pro Zielanwendung.
+- Plattformweichen im Kern: kein `cfg(target_os)`, kein `enum Platform`, keine Feature-Flags pro Betriebssystem. Der Kern kennt nur die **Fähigkeitsleiter**.

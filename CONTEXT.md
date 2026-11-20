@@ -3,7 +3,7 @@ type: Glossary
 title: Vokabular
 description: Was die Wörter in diesem Repository genau bedeuten.
 tags: [wissensbasis, vokabular]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:28:38Z }
+generated: { by: opencode/general, at: 2026-11-20T16:23:16Z }
 status: stable
 ---
 
@@ -16,6 +16,9 @@ trägt ihn hier ein.
 
 | Begriff | Bedeutung |
 |---|---|
+| **Plattformschale** | Die dünne, plattformspezifische Schicht um den Kern — je eine für Windows, Linux und macOS. Sie meldet beim Start den Fähigkeitssatz und setzt Kernaufträge in Plattformaufrufe um (Hotkeys, Zwischenablage, Einfügen, Tray, Autostart, Geheimnisse). Sie enthält **keine** Fachlogik. |
+| **Fähigkeitsleiter** | Der Satz von Fähigkeiten, den eine Plattformschale beim Start meldet — `global_hotkey`, `foreground_window`, `insert_keystroke`, `clipboard_envelope`, `clipboard_exclusion`, `tray`, `autostart`, `secret_storage`, `audio_host`. Der Kern leitet sein Verhalten daraus ab, **nie** aus dem Betriebssystem. Was fehlt, fällt auf die sichere Seite. |
+| **Diktierplatz** | Das **fokussierte** Workbench-Fenster, in dem die blanken Tasten gelten: Space = Pause/Fortsetzen, Enter = Ende der Aufnahme. Außerhalb des Diktierplatzes gelten nur die globalen Hotkeys. |
 | **Diktat** | Ein Eintrag im FIFO. Ein in sich geschlossener Vorgang: ein Brief, eine Notiz, ein Besprechungsprotokoll. Besteht aus einem rohen und höchstens einem polierten Transkript. |
 | **Rohes Transkript** | Der aus den transkribierten Fragmenten zusammengesetzte Text eines Diktats. Es gibt genau eines pro Diktat; es wächst durch **Append**. |
 | **Poliertes Transkript** | Das Ergebnis des letzten **Prompt anwenden** über das ganze rohe Transkript. Genau ein Slot pro Diktat, keine Historie. |
@@ -28,13 +31,15 @@ trägt ihn hier ein.
 | **Prompt anwenden** | Die Auswahl auf das rohe Transkript anwenden. Schreibt das polierte Transkript und legt es in die Zwischenablage. |
 | **FIFO** | Die letzten N Diktate, N aus der Konfiguration. Kommt eines hinzu, fällt das älteste samt Arbeitsverzeichnis heraus. |
 | **Zielanwendung** | Das Programm, in das der Nutzer den Text einfügt: Word, Google Docs, Notepad, ein Terminal. |
-| **Einfügen** | Das einmalige Senden von Strg+V nach dem Abschluss eines Diktats. Nie bei **Prompt anwenden**. Steht in `insert_after_dictation` (`never`, `same_window`, `always`). |
-| **Lieferung** | Das Schreiben des Ergebnisses in die Zwischenablage: `CF_HTML` und `CF_UNICODETEXT` plus Ausschlussformate. Immer, unabhängig vom Einfügen: beim Abschluss, bei **Prompt anwenden**, beim Verlassen einer bearbeiteten Ansicht und auf Knopfdruck. Die Zwischenablage behält den Text. |
+| **Diktier-Hotkey** | „diktieren roh" oder „diktieren poliert" — ein **Umschalter**: erster Druck startet die Aufnahme, zweiter beendet sie. Während einer Aufnahme beenden **beide**. Kein Push-to-talk: ohne Tastenhook gibt es kein Key-up. |
+| **Pause-Hotkey** | Der dritte globale Hotkey: pausiert eine laufende Aufnahme und setzt sie fort. Er wirkt auch ohne Fensterfokus. |
+| **Einfügen** | Das einmalige Senden von Strg+V (macOS: Cmd+V) nach dem Abschluss eines Diktats. Nie bei **Prompt anwenden**. Steht in `insert_after_dictation` (`never`, `same_window`, `always`); die Plattform-Defaults folgen der **Fähigkeitsleiter**, und in das eigene Fenster wird **nie** eingefügt. |
+| **Lieferung** | Das Schreiben des Ergebnisses in die **Systemzwischenablage**: das semantische `html`-Fragment und der reine Text, dazu der Ausschluss aus History/Cloud, den die Plattform kennt. Immer, unabhängig vom Einfügen: beim Abschluss, bei **Prompt anwenden**, beim Verlassen einer bearbeiteten Ansicht und auf Knopfdruck. Die Zwischenablage behält den Text. |
 | **In die Zwischenablage** | Der Knopf in der Workbench: liefert den **sichtbaren** Reiter jederzeit — ohne Bearbeitung, ohne Verlassen, ohne Einfügen. Der Weg für ein nur gelesenes Diktat und für eine inzwischen überschriebene Zwischenablage. |
-| **Zwischenablage** | Die Windows-Zwischenablage. Sie ist die einzige Schnittstelle zur Zielanwendung. |
+| **Zwischenablage** | Die **Systemzwischenablage** des jeweiligen Ziels — unter Windows, Linux und macOS die eigene. Sie ist die einzige Schnittstelle zur Zielanwendung. |
 | **Fast Path** | Hotkey → Audio → Fragmente → STT → rohes Transkript. Läuft ohne Webview und ohne JavaScript. |
 | **Bearbeiten** | Manuelle Änderung eines Transkripts in der Workbench — roh oder poliert. Ein Rohtext-Edit verwirft das Polierte. Wer eine Ansicht bearbeitet hat, **liefert** sie beim Verlassen; maßgeblich ist die zuletzt bearbeitete Ansicht. |
-| **Workbench** | Das Fenster: Reiter „rohes Transkript" und „poliertes Transkript" — **beide editierbar** —, Prompt-Auswahl, **Prompt anwenden**, Knopf **In die Zwischenablage**. |
+| **Workbench** | Das Fenster: Reiter „rohes Transkript" und „poliertes Transkript" — **beide editierbar** —, Prompt-Auswahl, **Prompt anwenden**, Knopf **In die Zwischenablage**. Ist es fokussiert, ist es der **Diktierplatz**. |
 | **Tray-Zustand** | Einer von `IDLE`, `RECORDING`, `PAUSED`, `TRANSCRIBING`, `POLISHING`, `READY`, `POLISHED`, `FEHLER`. |
 
 ## Geerbte Begriffe
@@ -76,13 +81,31 @@ die Audioseite, nicht die Textseite:
   Ansicht. Umgekehrt ist er der einzige Weg zu einem Text, den die Automatik
   nicht kennt — ein nur gelesenes Diktat, eine inzwischen überschriebene
   Zwischenablage.
+- **„Zwischenablage" heißt Systemzwischenablage, nicht Windows-Zwischenablage.**
+  Die frühere Definition „**Zwischenablage** — die Windows-Zwischenablage.
+  Sie ist die einzige Schnittstelle zur Zielanwendung" **entfällt** mit der
+  Entscheidung „Drei Ziele, ein Kern" (2026-11-20): gemeint war immer die
+  Schnittstelle zur Zielanwendung, und die ist auf jedem Ziel eine andere.
+- **Es wird keine fremde Taste geschluckt.** Die frühere Regel „Leertaste
+  pausiert und setzt fort; sie wird **nur** in `RECORDING` geschluckt"
+  **entfällt** mit der Hook-Entscheidung (2026-11-20): Space und Enter gelten
+  nur noch im **Diktierplatz**, also im fokussierten eigenen Fenster. Kein
+  Tastenhook, kein Push-to-talk, kein Schlucken.
+- **Der Kern kennt keine Plattform.** Kein `cfg(target_os)`, kein
+  `enum Platform`: der Kern fragt die **Fähigkeitsleiter** der Schale ab.
+  „Windows-only", „Plattformweiche im Kern" und „Feature-Flag pro Betriebssystem"
+  sind verworfen.
+- **Drei Ziele, ein Kern, drei dünne Schalen.** Windows, Linux und macOS teilen
+  sich Domäne, Datenmodell und Abläufe; verschieden ist nur die Schale. Die
+  Reihenfolge der Auslieferung ist **offen**; gebaut wird zuerst auf Linux
+  (erste Schale), Windows bleibt das Produkt.
 
 ## Zustände und Übergänge
 
 ```
-IDLE ──hotkey──▶ RECORDING ⇄ PAUSED          (Arbeitsverzeichnis entsteht)
+IDLE ──Hotkey──▶ RECORDING ⇄ PAUSED          (Arbeitsverzeichnis entsteht)
                      │
-                  (Enter)
+                  (Enter im Fenster)
                      ▼
                TRANSCRIBING ──────────────▶ READY ──"Prompt anwenden"──▶ POLISHING
                      │                        │                            │
@@ -93,12 +116,17 @@ IDLE ──hotkey──▶ RECORDING ⇄ PAUSED          (Arbeitsverzeichnis ent
                                                                        POLISHED
 ```
 
+Zwei Scopes: **global** wirken die drei Hotkeys (diktieren roh, diktieren
+poliert, pausieren/fortsetzen); **fokussiert** im Diktierplatz zusätzlich Space
+(Pause) und Enter (Ende). Beides ist kein Tastenhook — die App fängt nur im
+eigenen Fenster ab.
+
 | Von | Nach | Auslöser |
 |---|---|---|
-| `IDLE` | `RECORDING` | Hotkey „diktieren roh" oder „diktieren poliert"; neues Diktat, Arbeitsverzeichnis entsteht |
-| `RECORDING` | `PAUSED` | Leertaste. Die Leertaste wird **nur** in `RECORDING` geschluckt |
-| `PAUSED` | `RECORDING` | Leertaste |
-| `RECORDING` | `TRANSCRIBING` | Enter. Es wird gewartet, bis das letzte Fragment transkribiert ist |
+| `IDLE` | `RECORDING` | Diktier-Hotkey „diktieren roh" oder „diktieren poliert" (Umschalter, erster Druck); neues Diktat, Arbeitsverzeichnis entsteht |
+| `RECORDING` | `PAUSED` | **zwei Auslöser:** Space im **Diktierplatz** oder der **Pause-Hotkey** (global, auch ohne Fensterfokus) |
+| `PAUSED` | `RECORDING` | derselbe Auslöser: Space im **Diktierplatz** oder der **Pause-Hotkey** |
+| `RECORDING` | `TRANSCRIBING` | Enter im **Diktierplatz** oder ein Diktier-Hotkey (Umschalter, zweiter Druck — während einer Aufnahme beenden **beide**). Es wird gewartet, bis das letzte Fragment transkribiert ist |
 | `TRANSCRIBING` | `READY` | alle Fragmente transkribiert, roh gewählt: Zwischenablage = rohes Transkript |
 | `TRANSCRIBING` | `POLISHING` | alle Fragmente transkribiert, poliert gewählt: ein Aufruf an das LLM |
 | `POLISHING` | `POLISHED` | Antwort da: poliertes Transkript in Fenster **und** Zwischenablage |

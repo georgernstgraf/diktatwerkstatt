@@ -3,13 +3,204 @@ type: Decisions
 title: Entscheidungen
 description: Getroffene Architektur- und Produktentscheidungen mit Begründung.
 tags: [entscheidungen, architektur]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:28:38Z }
+generated: { by: opencode/general, at: 2026-11-20T16:23:16Z }
 status: stable
 ---
 
 # Entscheidungen
 
 Neueste oben. Jeder Eintrag nennt Entscheidung, Grund und verworfene Alternative.
+
+## 2026-11-20 — E1 Drei Ziele, ein Kern
+
+**Entscheidung:** Ein geteilter Rust-Kern, drei dünne Plattformschalen: Windows,
+Linux, macOS. Die **Reihenfolge der Auslieferung bleibt offen** — die Architektur
+ist festgelegt, der Termin nicht. „macOS in v0.1 oder danach" ist damit eine
+Aufwandsfrage, kein Umbau.
+**Grund:** Der größte Teil des Codes ist plattformfrei — Audio, Fragmente, Naht,
+STT-/LLM-Client, FIFO, Markdown → Fragment, `Delivery`. Wer ihn an Windows
+bindet, lässt die VM Torwächter für alles spielen, obwohl nur drei Bausteine sie
+brauchen. Es ist dasselbe Muster, mit dem TMOG aus einer Spezifikation entstanden
+ist: ein geteilter kompilierter Kern plus dünne Schalen.
+**Verworfen:** Windows-only (die VM bleibt Torwächter für alles, obwohl der
+größte Teil des Codes plattformfrei ist); Windows+Linux ohne macOS (die dritte
+Schale wäre ein Umbau); Electron (Chromium im Binary, gegen den
+Footprint-Grund der Stack-Entscheidung); getrennte Apps je Plattform (drei
+Doku-Sätze, drei Datenmodelle).
+
+## 2026-11-20 — E2 Der Kern fragt Fähigkeiten ab, nicht Plattformen
+
+**Entscheidung:** Kein `cfg(target_os)`, kein `enum Platform` in der Domäne. Die
+Schale meldet beim Start einen **Fähigkeitssatz**, der Kern leitet sein Verhalten
+daraus ab:
+
+```
+global_hotkey        ja / nein
+foreground_window    ja / nein        ← entscheidet über same_window
+insert_keystroke     ja / nein / ja-mit-freigabe
+clipboard_envelope   cf_html | html_fragment
+clipboard_exclusion  api | convention | keine
+tray                 ja / mit-erweiterung
+autostart, secret_storage, audio_host
+```
+
+**Degradationsregel:** was die Plattform nicht kann, fällt auf die **sichere
+Seite** — `same_window` ohne `foreground_window` wird `never`, nie `always`. Nie
+einzufügen ist immer richtig, der Text liegt in der Zwischenablage.
+**Grund:** Die Schichtung bleibt erzwingbar: `crates/core` kompiliert und testet
+auf jeder Plattform, weil es keine kennt. Nebeneffekt: #8 (Fast Path) wird ohne
+Hardware testbar — eine Fake-Plattform mit
+`{foreground_window: nein, insert_keystroke: nein}` ist Wayland, eine mit
+`{ja, ja}` ist X11 oder Windows. Die Fähigkeitsleiter wird zur Testsuite statt
+zur Behauptung.
+**Verworfen:** Plattformweichen im Kern (zerstört die Schichtung, die
+`cargo test` auf Linux erst möglich macht); `enum Platform` (jedes vierte Ziel
+ist ein Umbau); Feature-Flags pro Betriebssystem (dieselbe Weiche mit anderem
+Namen).
+
+## 2026-11-20 — E3 Kein globaler Tastenhook — zwei Scopes statt einer geschluckten Taste
+
+**Entscheidung:** Nicht fokussiert steuern **drei globale Hotkeys**: `diktieren
+roh`, `diktieren poliert`, `pausieren/fortsetzen`. Fokussiert (Workbench im
+Vordergrund) gelten zusätzlich Space (Pause) und Enter (Ende) — im eigenen
+Fenster abgefangen, nicht systemweit.
+
+- Der Diktier-Hotkey ist ein **Umschalter**: erster Druck startet, zweiter
+  beendet. Enter gibt es nur im Fenster. Ohne Hook gibt es kein Key-up, also kein
+  Push-to-talk — auf keiner Plattform.
+- Während einer Aufnahme **beenden beide** Diktier-Hotkeys. Das Moduspaar
+  (roh/poliert) wird beim Start entschieden, nicht mitten im Diktat gewechselt.
+- **Nie ins eigene Fenster einfügen:** ist die Workbench das Vordergrundfenster,
+  unterbleibt das Einfügen, auch bei `always`.
+
+**Grund:** Der riskanteste Windows-Baustein fällt weg (`WH_KEYBOARD_LL`, ~300
+Zeilen, Re-Install nach Session-/Power-Events, blind bei fokussierter Admin-App)
+und mit ihm der einzige unter Wayland nicht baubare Baustein. Zwei dokumentierte
+Fallstricke werden zu Konstruktionsunmöglichkeiten: „Space darf nur in
+`RECORDING` geschluckt werden" und „der Hook ist bei Admin-Apps blind" können
+nicht mehr falsch gemacht werden, weil die App keine fremde Taste mehr anfasst.
+**Verworfen:** `WH_KEYBOARD_LL` (Aufwand, Störungsanfälligkeit, Blindheit, unter
+Wayland ohnehin unmöglich — drei Bedienmodelle); `evdev`/`/dev/input` (sähe alle
+Tastatureingaben eines Mandantenwerkzeugs); Hook nur unter Windows (zwei
+Bedienmodelle); Push-to-talk (kein Key-up bei `RegisterHotKey`).
+
+## 2026-11-20 — E4 `same_window` nur mit der Fähigkeit
+
+**Entscheidung:** `insert_after_dictation = same_window` gilt nur, wo die
+Plattform das Vordergrundfenster kennt: Windows, macOS (`frontmostApplication`),
+Linux/X11. Unter Wayland gibt es keine API dafür ⇒ `never`.
+**Grund:** Die Fähigkeitsleiter (E2) entscheidet über den Modus, nicht der
+Wunsch. Ein falsch geratenes Fenster ist teurer als ein nicht gesendetes Strg+V:
+der Text bleibt in der Zwischenablage.
+**Verworfen:** Fensteridentität über Compositor-IPC raten (KWin-Skript,
+GNOME-Erweiterung); `always` als Ersatz (schickt Text ins falsche Fenster).
+
+## 2026-11-20 — E5 Zwischenablage-Ausschluss ist dreistufig
+
+**Entscheidung:** Der Ausschluss aus History und Cloud ist je Plattform
+verschieden stark — und die Doku sagt das, statt „überall gelöst" zu behaupten:
+
+| | Formate | Ausschluss aus History/Cloud |
+|---|---|---|
+| Windows | `CF_HTML` + `CF_UNICODETEXT` | harte API: `CanIncludeInClipboardHistory=0`, `CanUploadToCloudClipboard=0`, `ExcludeClipboardContentFromMonitorProcessing` |
+| macOS | `public.html` + `public.utf8-plain-text` | De-facto-Konvention `org.nspasteboard.ConcealedType` (+ `TransientType`), von Maccy/PastePal u. a. honoriert, vom OS nicht erzwungen |
+| Linux | `text/html` + `text/plain;charset=utf-8` | praktisch nichts; KDE kennt `x-kde-passwordManagerHint`, GNOME hat keine eingebaute History |
+
+Die Zusage in `AGENTS.md` („immer die Ausschlussformate setzen") gilt nur für
+Windows unverkürzt und ist dort plattformabhängig formuliert. Tauris
+`writeSecret()` markiert plattformgerecht, kann aber kein HTML mit Markern — die
+eigenen Plattformmodule bleiben.
+**Grund:** Der Marker ist der einzige Hebel gegen `Win+V` und die Cloud-History,
+und unter Windows ist er erzwungen. Auf macOS und Linux ist weniger erreichbar —
+das zu sagen ist billiger als ein Versprechen, das die Plattform nicht einlöst.
+**Verworfen:** Ausschluss als „überall gelöst" behaupten; Marker weglassen
+(verschenkt die macOS-Konvention); nur Text ausliefern (verschenkt die Struktur).
+
+## 2026-11-20 — E6 Linux ist die erste Schale, Windows bleibt das Produkt
+
+**Entscheidung:** Gebaut wird auf Linux, deshalb zuerst die Linux-Schale;
+Reihenfolge der Auslieferung bleibt offen (E1).
+**Grund:** Markt ≠ erste Implementierung. Die Linux-Schale meldet die wenigsten
+Fähigkeiten (unter Wayland weder Vordergrundfenster noch Einfügen), jede spätere
+kann nur hinzufügen. Die schwächste zuerst zu bauen ist ein Vorteil: der
+Entwickler lebt täglich mit dem degradierten Pfad, statt ihn am Ende zu
+entdecken.
+**Verworfen:** Linux als Primärziel (kippt Zielgruppe und das
+Word-Merge-Formatting-Kriterium von #1); Windows zuerst (die VM ist der Blocker,
+nicht der Kern).
+
+## 2026-11-20 — E7 Verpackung Linux: AppImage primär, `.deb` zweitens
+
+**Entscheidung:** AppImage für Entwicklung und Ausprobieren, `.deb` als der
+„richtige" Weg (dort sind `.desktop`, Autostart und Icon nativ dabei).
+
+Das AppImage kollidiert mit dem Hotkey-Weg: **das GlobalShortcuts-Portal
+verlangt unter GNOME eine reverse-DNS-App-ID, die durch eine installierte
+`.desktop`-Datei gedeckt ist.** Eine AppImage aus `~/Downloads` hat keine, und
+GNOME lehnt dann stumm jede Bindung ab. Drei Pflichten der Schale:
+
+1. beim ersten Start `~/.local/share/applications/<app-id>.desktop` + Icon
+   schreiben (ohne root),
+2. `org.freedesktop.host.portal.Registry.Register(app_id)` vor `CreateSession`
+   aufrufen,
+3. Autostart bei jedem Start neu schreiben, mit dem aktuellen
+   `$APPIMAGE`-Pfad (sonst bricht der Eintrag beim Umbenennen/Verschieben).
+
+Dazu: `libfuse2` fehlt auf Ubuntu ≥ 22.04 (auf claw bestätigt) ⇒
+`--appimage-extract-and-run` oder einmalig nachinstallieren; Tray-Bibliothek vom
+Host, nicht gebündelt (gebündeltes AppIndicator bricht das Theming); die Datei
+wird groß, weil WebKit mitgeht.
+**Grund:** Ein AppImage ist ohne Installation ausprobierbar, ein `.deb` ist der
+Weg, den ein Linux-Nutzer erwartet. Beides zu haben kostet wenig; eines zu
+wählen kostet entweder Ausprobieren oder Installation.
+**Verworfen:** nur `.deb` (kein Ausprobieren ohne Installation); nur AppImage
+(Portal-Gate, Autostart-Fußangel); Flatpak (eigener Verteiler, eigener
+Testaufwand).
+
+## 2026-11-20 — E8 App-ID: PascalCase, endgültige Entscheidung zum ersten öffentlichen Build
+
+**Entscheidung:** Vorläufig `at.priv.graf.Diktatwerkstatt` — reverse-DNS der
+Domain `graf.priv.at`, letztes Segment in PascalCase; die `.desktop`-Datei heißt
+zeichengenau `at.priv.graf.Diktatwerkstatt.desktop`. Endgültig zusammen mit der
+Namens-/Domainfrage (Markenrecherche steht offen); im Rennen ist dann auch
+`at.diktatwerkstatt.Diktatwerkstatt`. Die Tür schließt sich mit dem ersten
+öffentlichen Build, weil die Portal-Bindungen an der ID hängen und einen Neustart
+überleben. Spike-IDs sind Wegwerf.
+**Grund:** GNOME akzeptiert Hotkey-Bindungen nur für eine ID, die eine
+installierte `.desktop`-Datei deckt (E7); reverse-DNS ist die Konvention, und das
+letzte Segment in PascalCase hält Dateiname und ID deckungsgleich.
+**Verworfen:** durchgehend klein (zulässig, aber unüblich und fehleranfällig beim
+Dateinamen); `at.graf.…` (falsches reverse-DNS); `io.github.georgernstgraf.…`
+(sperrt die Zukunft an einen Hosting-Namen).
+
+## 2026-11-20 — E9 Der Name bleibt `diktatwerkstatt`
+
+**Entscheidung:** Der Name bleibt `diktatwerkstatt`, bestätigt gegen die Erwägung
+„Diktierwerkstatt". Technischer Name bleibt `diktatwerkstatt` (crate,
+Datenverzeichnis, DB-Datei).
+**Grund:** „Diktier-" ist im Deutschen ein überfülltes Wortfeld (`Diktiergerät`,
+`Diktiersoftware`, `Diktierfunktion`) — schlechter suchbar und markenrechtlich
+enger. Ein bestehender Name, der trägt, ist billiger als ein Wechsel vor dem
+ersten Build.
+**Verworfen:** „Diktierwerkstatt" (überfülltes Wortfeld); ein neuer Name vor der
+Markenrecherche (zwei Umbenennungen statt einer).
+
+## 2026-11-20 — E10 `Delivery` trennt Fragment und Umschlag
+
+**Entscheidung:** `deliver(markdown) -> Delivery { html, text }`, wobei `html`
+ein **semantisches Fragment** ist (Absatz, Überschrift, ungeordnete Liste, fett).
+Der `CF_HTML`-Umschlag (Kopfzeile, Byte-Offsets, Zehnstellig-Nullfüllung) ist
+eine Funktion des **Windows-Schreibers**.
+**Grund:** Zwei von drei Zielen wollen das nackte Fragment (`text/html`,
+`public.html`); ein Umschlag im Kern wäre Plattformwissen in der Domäne und
+schließt Linux und macOS aus. Der Kern bleibt mit `cargo test` prüfbar, der
+Umschlag ist eine Plattformfunktion mit eigenen Tests.
+**Verworfen:** alles in einem `cf_html()` (schließt Linux und macOS aus);
+Umschlag in der Domäne (Plattformwissen im Kern).
+
+> Die zehn Einträge E1–E10 halten die **Beschlusslage des Eigentümers vom
+> 2026-11-16** fest; sie stehen hier in der Reihenfolge des Beschlusses und sind
+> am 2026-11-20 in die Dokumentation eingearbeitet (#11).
 
 ## 2026-11-19 — Kopier-Knopf als zweiter Weg zur Zwischenablage
 
@@ -86,6 +277,12 @@ nicht existiert, solange der Text in der Zwischenablage liegt); Zielfenster
 reaktivieren (verschiebt den Fokus des Nutzers); Delayed Render,
 Format-Snapshot und Read-Receipt (setzen voraus, dass die alte Zwischenablage
 zurückgelegt wird — tun wir nicht).
+**Amendiert 2026-11-20:** Die Einstellung gilt auf allen drei Zielen. Die
+**Plattform-Defaults** folgen der Fähigkeitsleiter: Windows und Linux senden
+Strg+V, macOS Cmd+V; kennt die Plattform das Vordergrundfenster nicht (Wayland
+ohne `foreground_window`), wird `same_window` zu `never` (E2, E4). Neu ist die
+Regel **„nie ins eigene Fenster"**: ist die Workbench das Vordergrundfenster,
+unterbleibt das Einfügen auch bei `always` (E3).
 
 ## 2026-11-16 — Korrigieren heißt Hören reparieren
 
@@ -204,6 +401,10 @@ muss.
 **Verworfen:** Politur-Schalter im Fenster (nicht erreichbar, wenn das Fenster
 zu ist); globaler Schalter (man muss vor dem Sprechen an etwas denken); dritter
 Hotkey zum Umschalten (zwei Schalter für dieselbe Sache).
+**Amendiert 2026-11-20:** Beide Diktier-Hotkeys sind **Umschalter** ohne Key-up —
+erster Druck startet, zweiter beendet; während einer Aufnahme beenden beide
+(E3). Pause/Fortsetzen ist der dritte globale Hotkey, nicht ein zweiter
+Diktier-Hotkey.
 
 ## 2026-11-16 — Ein Aufruf, kein Abschneiden
 
@@ -264,6 +465,11 @@ Outlook Web); docx-Datei (Dateidialog im Alltag).
 Einfügen aus anderen Programmen; Microsofts Beschreibung nennt Fett und Listen,
 aber **nicht** Überschriften. Ob Überschriften verflachen, ist nur auf echtem
 Windows messbar und gehört zu den Abnahmekriterien von #1.
+**Amendiert 2026-11-20:** `CF_HTML` ist nicht mehr das Format „der
+Zwischenablage", sondern der **Umschlag des Windows-Schreibers**; macOS und
+Linux nehmen das nackte semantische Fragment. Die Formatregeln — vier
+Konstrukte, Validierung, geordnete Listen als Text — bleiben und gelten für das
+Fragment selbst (E10, E5).
 
 ## 2026-11-16 — Kein Audio-Import; Diktat aus der Zwischenablage
 
@@ -321,6 +527,10 @@ Muster: ein geteilter kompilierter Kern plus dünne Plattformschalen.
 **Verworfen:** Kotlin/JVM (Bytecode + JIT — nicht „nativ" im hier gemeinten Sinn);
 Python (interpretiert, dazu PortAudio-/PyInstaller-Reibung); C# (nur sinnvoll,
 wenn Word-Automation zentral wird — dann später ein eigener Helfer).
+**Amendiert 2026-11-20:** „Tauri/WebView2" wird zu **Tauri mit drei Webviews** —
+WebView2 ist eine von drei, daneben WebKitGTK (Linux) und WKWebView (macOS). Als
+Windows-Sonderfall bleibt der Satz richtig; als Stackname ist er es nicht mehr,
+und der Kern ist seither plattformfrei (E1, E2).
 
 ## 2026-11-15 — Poliertes Transkript wird verworfen, nicht markiert
 

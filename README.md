@@ -8,14 +8,26 @@ Vokabular, Domänenmodell und Entscheidungen fest, bevor die erste Zeile
 geschrieben wird — nach dem Muster, mit dem TMOG (der neue Task Manager seines
 Originalautors) aus einer 107-seitigen Spezifikation entstanden ist.
 
+Beschlossen ist der Rahmen: **drei Ziele** (Windows, Linux, macOS), **ein
+geteilter Kern**, **drei dünne Plattformschalen**, **kein globaler Tastenhook**
+und **keine Plattformweiche im Kern** — der Kern fragt Fähigkeiten ab. Gebaut
+wird zuerst auf Linux; die Reihenfolge der Auslieferung ist offen. Die
+Entscheidungen stehen in [docs/ai/DECISIONS.md](docs/ai/DECISIONS.md), die
+Begriffe in [CONTEXT.md](CONTEXT.md).
+
 Das Epic ist **ausgegrillt**: die teuren Annahmen sind geprüft, zwei davon
 gekippt (Word-Formatierung, Whisper-Qualität auf Spontansprache). Ergebnis im
 Kommentar an [#3](https://github.com/georgernstgraf/diktatwerkstatt/issues/3).
 
 ## Was es ist
 
-- Ein **Windows-Hilfsprogramm im Tray**, das Diktate in jede Anwendung bringt
-  (Word, Google Docs, Notepad) — über die Zwischenablage, ohne Fenster im Weg.
+- Ein **Diktier-Werkzeug im Tray für drei Ziele** — Windows, Linux, macOS — mit
+  einem geteilten Rust-Kern und drei dünnen **Plattformschalen**. Es bringt
+  Diktate in jede Anwendung (Word, Google Docs, Notepad) — über die
+  Systemzwischenablage, ohne Fenster im Weg.
+- Gebaut wird zuerst auf **Linux** (erste Schale, weil dort entwickelt wird);
+  Windows bleibt das Produkt. Die Reihenfolge der Auslieferung ist offen, die
+  Architektur nicht.
 - Eine **Workbench** mit zwei Reitern: rohes Transkript links, poliertes
   rechts, Prompt-Auswahl darunter, „Prompt anwenden".
 - Ein **FIFO der letzten Diktate** — kein Archiv, keine Datenbankpflege.
@@ -26,25 +38,33 @@ Kommentar an [#3](https://github.com/georgernstgraf/diktatwerkstatt/issues/3).
 - Kein Cloud-Dienst. Rohtext und Politur bleiben lokal; nur Audio geht an die
   konfigurierte STT-API.
 - Kein Verlauf. Das polierte Transkript ist ein Slot, kein Protokoll.
-- Keine Word-Automation. Ein optionales Strg+V nach dem Diktat ist eine
+- Keine Word-Automation. Ein optionales Strg+V (Cmd+V) nach dem Diktat ist eine
   Einstellung (`never`/`same_window`/`always`); die Zwischenablage ist in jedem
-  Fall das Ergebnis und behält den Text.
+  Fall das Ergebnis und behält den Text. In das eigene Fenster wird nie
+  eingefügt.
+- **Kein globaler Tastenhook.** Drei globale Hotkeys starten, beenden und
+  pausieren; Space und Enter gelten nur im fokussierten Workbench-Fenster.
 
 ## Architektur in einem Bild
 
 ```
-Fast Path (Rust, ohne Webview)          Workbench (Tauri-Webview)
-Hook → Audio → Fragmente → STT              rohes Transkript
+Kern (Rust, ohne Webview)               Workbench (Tauri-Webview)
+Hotkey → Audio → Fragmente → STT            rohes Transkript
      → rohes Transkript                     poliertes Transkript
      → [ein LLM-Aufruf]                     Prompt-Auswahl (System + User)
      → Zwischenablage                       Prompt anwenden
               ↕                                     ↕
      eine SQLite-Datei (diktat, prompt), config.json,
      ein Arbeitsverzeichnis pro laufendem Diktat
+              ↑
+     Fähigkeitsleiter der Plattformschale
+     (Windows · Linux · macOS — ein Kern, drei Schalen)
 ```
 
-Der Kern (`crates/core`) hat keine UI- und keine Windows-Abhängigkeit und ist
-ohne laufende Anwendung testbar.
+Der Kern (`crates/core`) hat keine UI- und **keine Plattform-Abhängigkeit**: kein
+`cfg(target_os)`, kein `enum Platform`. Er ist ohne laufende Anwendung testbar,
+auf jedem Ziel. Was eine Plattform kann, meldet ihre Schale beim Start als
+**Fähigkeitsleiter**; was fehlt, fällt auf die sichere Seite.
 
 ## Dokumente
 
@@ -58,8 +78,9 @@ ohne laufende Anwendung testbar.
 | [AGENTS.md](AGENTS.md) | Arbeitsregeln für dieses Repository |
 
 Der Einstieg für die nächste Sitzung ist
-[docs/ai/HANDOFF.md](docs/ai/HANDOFF.md): erst der Spike (#1) in der Windows-VM,
-parallel Domäne (#4) und DSP-Port (#5).
+[docs/ai/HANDOFF.md](docs/ai/HANDOFF.md): erst das Provisioning (#19), dann der
+Linux-Spike (#12), der macOS-Spike (#13) und zuletzt der Windows-Spike (#1);
+parallel Domäne (#4), DSP-Port (#5) und Konverter (#10).
 
 ## Verwandte Projekte
 

@@ -3,7 +3,7 @@ type: State
 title: Zustand
 description: Was existiert, was noch nicht, und wie man es prüft.
 tags: [zustand]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-19T04:28:38Z }
+generated: { by: opencode/general, at: 2026-11-20T16:23:16Z }
 status: stable
 ---
 
@@ -13,25 +13,30 @@ status: stable
 
 | Artefakt | Stand |
 |---|---|
-| `README.md` | Beschreibung, Abgrenzung, Architekturbild, Lizenz |
-| `CONTEXT.md` | Vokabular inkl. bewusster Abgrenzungen und Zustandsübergängen |
-| `docs/ai/DOMAIN.md` | zwei Tabellen, zehn Invarianten, Abläufe, Arbeitsverzeichnis, Fehlerfälle |
-| `docs/ai/INTEGRATION.md` | Referenz: wie Handy/OpenWhispr die Windows-Bausteine lösen, mit Quellen; „was wir übernehmen" ist auf Zwischenablage und Tray zusammengeschrumpft |
-| `docs/ai/PITFALLS.md` | Referenz: Fallstricke aus Audio, STT, Textübergabe und Bedienung, mit Quellen |
-| `docs/ai/DECISIONS.md` | 24 Entscheidungen, je mit verworfener Alternative |
+| `README.md` | Beschreibung, Abgrenzung, Architekturbild, Lizenz — drei Ziele, ein Kern |
+| `CONTEXT.md` | Vokabular inkl. **Plattformschale**, **Fähigkeitsleiter**, **Diktierplatz**, bewusster Abgrenzungen und Zustandsübergängen |
+| `docs/ai/DOMAIN.md` | zwei Tabellen, zehn Invarianten, **Fähigkeitsleiter**, Abläufe, Arbeitsverzeichnis, Lieferformate je Plattform, Fehlerfälle |
+| `docs/ai/INTEGRATION.md` | Referenz: wie Handy/OpenWhispr die Bausteine lösen, mit Linux- und macOS-Spalte, mit Quellen; „was wir übernehmen" ist auf Zwischenablage, Tray und Hotkeys zusammengeschrumpft |
+| `docs/ai/PITFALLS.md` | Referenz: Fallstricke aus Audio, STT, Textübergabe, Bedienung, **Linux/Wayland** und **macOS**, mit Quellen |
+| `docs/ai/DECISIONS.md` | 34 Entscheidungen, je mit verworfener Alternative — darunter die Beschlusslage E1–E10 vom 2026-11-16 |
 | `docs/ai/index.md`, `docs/ai/log.md` | OKF-Bundle-Einstieg (`okf_version: "0.2"`) und Persistenz-Chronik |
-| `docs/ai/HANDOFF.md` | Reihenfolge der nächsten Sitzung inkl. VM-Lage |
+| `docs/ai/HANDOFF.md` | Reihenfolge der nächsten Sitzung inkl. VM-Lage und Provisioning-Befund |
 | `docs/ai/STATE.md` | diese Datei |
 | `AGENTS.md` | Stack, Schichtungsregel, Verifikationsbefehle |
 | `LICENSE-MIT`, `LICENSE-APACHE` | dual lizenziert, `MIT OR Apache-2.0` |
-| Issues | Epic #3 mit acht offenen Sub-Issues (#1, #4–#10) und einem geschlossenen (#2); #3 ausgegrillt |
+| Issues | Epic #3 mit offenen Sub-Issues #1, #4–#13 und #19; #2 geschlossen; #3 ausgegrillt |
 
 ## Existiert nicht
 
 - Kein `Cargo.toml`, kein `src/`, kein `package.json` — **null Produktcode**.
-- Keine Tests, keine CI. `cargo test` läuft ins Leere, weil es kein Crate gibt.
+- Keine Tests, keine CI. `cargo test` läuft ins Leere, weil es kein Crate gibt
+  und auf einem frischen Linux-Host auch kein `cargo` (Befund auf claw,
+  2026-11-16; #19 richtet Toolchain und Build-Abhängigkeiten ein).
 - Keine Windows-VM auf think: qemu, libvirt, OVMF und swtpm sind installiert,
   es ist aber noch kein Gast definiert.
+- Keine Linux- und keine macOS-Schale; die Linux-Schale ist der nächste
+  Bauabschnitt (#12), die Fähigkeitsleiter liefert dafür nur das Gerüst in der
+  Doku.
 
 ## Verifikation
 
@@ -40,13 +45,18 @@ Im Moment gibt es nichts zu verifizieren außer der Dokumentenkonsistenz:
 Regeln nennen. `CONTEXT.md` ist dabei die Quelle der Begriffe, `DOMAIN.md` die
 Quelle der Invarianten; wer einen Begriff ändert, ändert ihn zuerst dort.
 
-Der erste grüne `cargo`-Commit kommt voraussichtlich aus **#4** (Domänenkern)
-oder **#10** (Konverter), weil beide ohne Hardware und ohne Netz auskommen. Der
-Spike (#1) braucht die VM und kommt danach.
+Der erste grüne `cargo`-Commit setzt #19 (Provisioning) voraus. Danach kommen
+**#4** (Domänenkern), **#10** (Konverter) und **#5** (DSP-Port) — alle drei ohne
+Hardware und ohne Netz, also auf Linux lauffähig. Die Spikes folgen: #12 (Linux)
+vor #13 (macOS) vor #1 (Windows).
+
+Ohne Hardware testbar bleibt der Fast Path (#8), sobald die **Fähigkeitsleiter**
+existiert: ein Fake mit `{foreground_window: nein, insert_keystroke: nein}` ist
+Wayland, einer mit `{ja, ja}` ist X11 oder Windows.
 
 ## Nächster Schritt
 
-`docs/ai/HANDOFF.md`, Schritt 3: #4 (Domänenkern) und #10 (Konverter) zuerst —
-beide ohne Hardware und ohne Netz, und #10 ist der einzige Baustein, der schon
-jetzt gegen eine Spezifikation testbar ist. Der Spike #1 braucht die VM auf
-think; #5 läuft parallel.
+`docs/ai/HANDOFF.md`, Schritt 3: **#19 Provisioning** — rustup, `libwebkit2gtk-4.1-dev`,
+`libgtk-3-dev`, `librsvg2-dev`, `libayatana-appindicator3-dev`, `patchelf`,
+`libfuse2`, `appimagetool` auf claw und dell. Danach #12 (Linux-Schale), parallel
+#4, #5 und #10.

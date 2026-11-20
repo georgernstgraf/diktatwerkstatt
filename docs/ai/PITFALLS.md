@@ -1,9 +1,9 @@
 ---
 type: Reference
 title: Fallstricke
-description: Hart erarbeitete Fallen aus Audio, STT, Textübergabe und Bedienung — nicht neu entdecken.
+description: Hart erarbeitete Fallen aus Audio, STT, Textübergabe, Bedienung und den drei Plattformen — nicht neu entdecken.
 tags: [referenz, fallstricke]
-generated: { by: opencode/knowledge-persistence, at: 2026-11-16T06:08:40Z }
+generated: { by: opencode/general, at: 2026-11-20T16:23:16Z }
 status: stable
 sources:
   - id: whisper-silence
@@ -95,23 +95,31 @@ in [DOMAIN.md](DOMAIN.md).
   *kursiv* meint — Bedeutungsumkehr.[^office-watch]
 - **Die Clipboard-Ausschlussformate wirken global**, nicht je Datenformat —
   `CF_HTML` daneben zu legen hebt den Win+V-Ausschluss nicht auf.[^ms-clipboard]
-  Drittanbieter-Clipboard-Manager halten sich aber nicht zwingend daran.
+  Drittanbieter-Clipboard-Manager halten sich aber nicht zwingend daran. Das
+  gilt für **Windows**; macOS hat nur eine Konvention und Linux praktisch nichts
+  (siehe [DOMAIN.md](DOMAIN.md), „Formate und Ausschluss je Plattform").
 - **UIPI scheitert stumm.** Erhöht laufende Ziele erreichen weder Hook noch
   Injection, und `SendInput` meldet den Fehlschlag **nicht** — der Text
   verschwindet.[^handy-uipi] Für uns folgenlos: der Text bleibt in der
-  Zwischenablage. Relevant bleibt es nur für das Schlucken der Leertaste —
-  dort ist der Hook blind.
+  Zwischenablage. Relevant blieb es nur für das Schlucken der Leertaste — dort
+  war der Hook blind. **Entfällt mit der Hook-Entscheidung (2026-11-20)**: es
+  wird keine fremde Taste mehr geschluckt, und das stumme Scheitern eines
+  Einfügens bleibt folgenlos, weil die Zwischenablage den Text behält.
 - **Google Docs ist ein Canvas.** UI Automation ist wertlos; nur echte
   Tastatur-Events oder ein Paste kommen an.
 
 ## Bedienung
 
 - **Space darf nur im Zustand `RECORDING` geschluckt werden**, sonst tippt
-  niemand mehr Leerzeichen.
+  niemand mehr Leerzeichen. **Entfällt: wir hooken nicht mehr** (Entscheidung
+  „Kein globaler Tastenhook", 2026-11-20). Space gilt nur noch im
+  **Diktierplatz** — dem fokussierten Workbench-Fenster — und wird dort vom
+  eigenen Fenster abgefangen, nicht systemweit. Der Satz bleibt stehen, weil er
+  die Grenze benennt, an der ein systemweiter Hook scheitern muss.
 - **Doppelt einfügen droht nur bei der Wiederholung.** Das erste Einfügen
   nach einem Diktat ist erlaubt (Einstellung `insert_after_dictation`);
   **Prompt anwenden** fügt nie ein, sonst steht der zweite Lauf im fremden
-  Dokument.
+  Dokument. In das **eigene** Fenster wird nie eingefügt.
 - **Rohtext nie gewrappt speichern** (Fehler aus `aitranscribe`: `PromptManager`
   wrappt beim Schreiben).
 - **Windows 11 versteckt neue Tray-Symbole im Überlauf** ⇒ Overlay-Pille
@@ -119,6 +127,54 @@ in [DOMAIN.md](DOMAIN.md).
 - **Der Low-Level-Hook ist bei fokussierter Admin-App blind.** Das Schlucken
   funktioniert nur zwischen Prozessen gleicher Integritätsstufe;
   `RegisterHotKey` funktioniert weiter. Siehe [INTEGRATION.md](INTEGRATION.md).
+  **Entfällt mit der Hook-Entscheidung (2026-11-20)** — genau deshalb sind die
+  drei globalen Hotkeys der Weg und nicht ein Hook.
+
+## Linux und Wayland
+
+Befunde aus dem Provisioning an #11 (claw, 2026-11-16). Sie sind Warnungen aus
+dem Bau, keine Messungen; Belege stehen noch aus.
+
+- **Das GlobalShortcuts-Portal verlangt unter GNOME eine gedeckte App-ID.**
+  `CreateSession` braucht eine reverse-DNS-App-ID, die eine **installierte**
+  `.desktop`-Datei deckt. Eine AppImage aus `~/Downloads` hat keine — und GNOME
+  lehnt dann **stumm** jede Bindung ab: kein Fehler, keine Bindung, kein
+  Hinweis. Pflichten der Schale: `.desktop` + Icon beim ersten Start nach
+  `~/.local/share/applications/` schreiben,
+  `org.freedesktop.host.portal.Registry.Register(app_id)` vor `CreateSession`
+  aufrufen, Autostart bei jedem Start mit dem aktuellen `$APPIMAGE` neu
+  schreiben.
+- **GNOME 45–47 liefern kein GlobalShortcuts-Backend.** Ohne Backend gibt es
+  keine globalen Hotkeys — das ist die Plattform, nicht ein Fehler. Die App muss
+  dann über Fenster und Tray bedienbar bleiben; eine Fehlermeldung beim Start ist
+  ehrlicher als ein Hotkey, der nichts tut.
+- **`wtype` funktioniert nur unter wlroots.** Sway und Hyprland ja, GNOME und
+  KDE nein.
+- **`enigo` und `xdotool` melden Erfolg und tippen nichts.** Unter Wayland gibt
+  es keinen Injektionsweg in fremde Fenster; die Aufrufe kehren erfolgreich
+  zurück, und der Text fehlt. Deshalb meldet die Linux-Schale unter Wayland
+  `insert_keystroke: nein` — und nicht „hat geklappt".
+- **KDE verliert die RemoteDesktop-Erlaubnis beim Reboot.** Die Freigabe aus dem
+  Portal-Dialog gilt für die Sitzung; nach dem Neustart muss sie neu erteilt
+  werden. Kein verlässlicher Einfügeweg, also nicht darauf bauen.
+- **AppImage ohne `.desktop` ist keine App.** Ohne den Eintrag gibt es weder
+  Portal-Bindung noch Autostart; dazu fehlt `libfuse2` auf Ubuntu ≥ 22.04
+  (bestätigt auf claw) ⇒ `--appimage-extract-and-run` oder einmalig
+  nachinstallieren.
+
+## macOS
+
+- **TCC `PostEvent` scheitert stumm wie UIPI.** Ohne die Freigabe in den
+  Bedienungshilfen werden synthetische Tastatur-Events verworfen, und die API
+  meldet keinen Fehler. Dasselbe Muster wie unter Windows: der Text bleibt in der
+  Zwischenablage, das Einfügen unterbleibt stillschweigend. Fähigkeit
+  `insert_keystroke: ja-mit-freigabe`.
+- **Gatekeeper ohne Notarisierung.** Signatur und Notarisierung sind keine
+  Kür: ohne sie startet die App nur über „Rechtsklick → Öffnen" oder nach
+  Entfernen des Quarantäne-Attributs.
+- **`org.nspasteboard.ConcealedType` ist nur eine Konvention.** Das OS erzwingt
+  nichts; Clipboard-Manager, die den Typ nicht kennen, speichern den Inhalt
+  trotzdem. Die Zusage lautet darum „Konvention", nicht „garantiert".
 
 [^whisper-silence]: Whisper Discussion #928 — https://github.com/openai/whisper/discussions/928
 [^essv-chunks]: ESSV 2026, S. 232–239 — https://www.essv.de/pdf/2026_232_239.pdf
