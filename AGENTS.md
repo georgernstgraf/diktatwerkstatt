@@ -103,11 +103,15 @@ der Begriffe, `DOMAIN.md` die Quelle der Invarianten, `DECISIONS.md` darf keine
 dazu widersprüchliche Entscheidung enthalten. Ein Doku-Commit ist grün, wenn
 keine Vokabel und keine Invariante an zwei Stellen verschieden definiert ist.
 
-Die Toolchain ist nicht überall vorhanden: auf einem frischen Linux-Host fehlen
-`rustup`/`cargo` (Befund auf claw, 2026-11-16 — Drift, der mit dem ersten Crate
-auffällt). #19 (Provisioning) richtet sie ein, dazu `libwebkit2gtk-4.1-dev`,
-`libgtk-3-dev`, `librsvg2-dev`, `libayatana-appindicator3-dev`, `patchelf`,
-`libfuse2` und `appimagetool`. Bis dahin gilt die Dokumentenprüfung.
+Die Toolchain ist nicht überall vorhanden. **#19 hat claw provisioniert**
+(2026-11-20): rustc/cargo 1.100.0 mit `clippy` und `rustfmt`,
+`libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `librsvg2-dev`,
+`libayatana-appindicator3-dev`, `patchelf`, `libfuse2t64`, `libasound2-dev`,
+`appimagetool`; die drei Befehle oben laufen dort grün. Zwei Fallen dabei (Details
+in `docs/ai/PITFALLS.md`): `--profile minimal` bringt **weder `clippy` noch
+`rustfmt`**, und `ssh claw 'cargo …'` findet `cargo` nicht, weil sshd eine
+Non-Login-Shell startet. Auf jedem weiteren Host gilt die Dokumentenprüfung, bis
+er provisioniert ist.
 
 ## Commits und Issues
 
@@ -184,7 +188,8 @@ auffällt). #19 (Provisioning) richtet sie ein, dazu `libwebkit2gtk-4.1-dev`,
 ## Repository und Kontakt
 
 - GitHub: `georgernstgraf/diktatwerkstatt`
-- Issues: GitHub Issues; Epic #3 mit den Sub-Issues #1, #4–#19 (#2 geschlossen).
+- Issues: GitHub Issues; Epic #3 mit den Sub-Issues #1, #4–#19 (#2, #11 und #19
+  geschlossen).
   Reihenfolge: #19 Provisioning → #12 Linux-Spike → #13 macOS-Spike → #1
   Windows-Spike; nach dem Provisioning hardwarefrei parallel dazu #4/#5/#10.
 - Eigentümer: Georg Graf <grafg@spengergasse.at>

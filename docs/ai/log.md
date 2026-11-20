@@ -1,5 +1,23 @@
 # Persistenz-Log
 
+## 2026-11-20 — Provisioning auf claw erledigt (#19)
+
+* **Erledigt**: claw ist provisioniert und verifiziert — rustc/cargo **1.100.0**,
+  `clippy` und `rustfmt` nachgezogen (im Profil `minimal` nicht enthalten),
+  Tauri-Abhängigkeiten und `libasound2-dev` per apt, `appimagetool` in
+  `~/.local/bin`; `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`
+  und `cargo test` laufen dort grün, der cpal-Smoke-Build ebenso.
+* **Update**: [HANDOFF.md](HANDOFF.md) — Schritt 3 auf „erledigt" mit
+  Prüfstand-Tabelle und der Host-Regel, dass Linux-Messungen nicht vom
+  Windows-Laptop aus laufen; neuer Abschnitt „In Arbeit — #12" mit dem ersten
+  gemessenen Befund. [STATE.md](STATE.md) — claw provisioniert, #12 als nächster
+  Schritt, Issue-Landschaft ohne #19. [PITFALLS.md](PITFALLS.md) — App-ID-Gate aus
+  dem cgroup-Scope **gemessen** (statt „stumm"), `Registry.Register`, Laufzeit- vs.
+  Entwicklungs-Paket bei ALSA, `--profile minimal`, Non-Login-PATH, 3-GB-RAM.
+  [../../AGENTS.md](../../AGENTS.md) — Verifikationsabschnitt auf den Stand von #19.
+* **Verworfen**: `--profile minimal` ohne `clippy`/`rustfmt`; `libfuse2` und
+  `libasound2` unter den alten Namen suchen; Provisioning auch auf think/dell.
+
 ## 2026-11-20 — Reihenfolge bestätigt: Provisioning zuerst, dann Spikes und Kerne parallel (#19)
 
 * **Update**: [HANDOFF.md](HANDOFF.md) — Schritt 5 beginnt nicht mehr „neben dem

@@ -3,7 +3,7 @@ type: Handoff
 title: Übergabe
 description: Was die nächste Sitzung zuerst tut, in welcher Reihenfolge, und was schon bekannt ist.
 tags: [wissensbasis, handoff]
-generated: { by: opencode/general, at: 2026-11-20T16:42:05Z }
+generated: { by: opencode/general, at: 2026-11-20T18:20:00Z }
 status: stable
 ---
 
@@ -32,21 +32,28 @@ dadurch falsch geworden sind (Hook, geschluckte Leertaste,
 Windows-Zwischenablage, `Tauri/WebView2` als Stackname), sind als „entfällt"
 markiert und nicht gelöscht — die Beobachtung dahinter bleibt wertvoll.
 
-## 🚦 Schritt 3 — Provisioning (#19), der erste Schritt
+## ✅ Erledigt — Schritt 3: Provisioning (#19), claw ist bereit
 
 Ohne Toolchain gibt es keinen grünen `cargo`-Commit, und `AGENTS.md` verlangt ihn
-vor jedem Commit. Befund auf **claw** (2026-11-16):
+vor jedem Commit. Stand nach dem 2026-11-20:
 
-| Punkt | Befund |
+| Punkt | Stand |
 |---|---|
-| Rust | `~/.cargo` und `~/.rustup` fehlen, `cargo` nicht im PATH ⇒ rustup installieren |
-| Build-Abhängigkeiten | `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `librsvg2-dev`, `libayatana-appindicator3-dev`, `patchelf`, `libfuse2`, `appimagetool` |
-| sudo | passwortlos verfügbar |
-| Maschine | Ubuntu 26.04.1, 2 Kerne, 3 GB RAM, 54 GB frei |
+| Rust | rustc/cargo **1.100.0** in `~/.cargo/bin`; `clippy` und `rustfmt` nachinstalliert — im Profil `minimal` **nicht** enthalten |
+| Build-Abhängigkeiten | webkit2gtk-4.1 2.52.6, gtk+-3.0 3.24.52, javascriptcoregtk-4.1 2.52.6, libsoup-3.0 3.6.6, `libasound2-dev` für `cpal` |
+| Paketnamen (26.04) | `libfuse2` → **`libfuse2t64`**, `libasound2` → **`libasound2t64`**; `cpal` braucht `libasound2-dev`, nicht nur die Laufzeit |
+| appimagetool | `continuous` (git 11d54c9) in `~/.local/bin`, FUSE vorhanden, startet direkt |
+| Verifikation | `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test` — alle exit 0 in einem Wegwerfcrate; cpal-Smoke-Build ebenso |
+| Maschine | Ubuntu 26.04.1, 2 Kerne, **3,8 GB RAM mit ~0,7 GB frei**, 6,4 GB Swap belegt, 51 GB frei |
 
-Provisioniert wird **nur claw** (#19): dort laufen Kern und Schale (headless
-kompiliert, `cargo test`, kein Display). **dell** bleibt der Desktop-Prüfstand
-für echte Hotkeys, Tray und AppImage — ohne Provisioning in #19.
+Zwei Fallen für den nächsten Sitzenden: **`ssh claw 'cargo …'` findet `cargo`
+nicht** (sshd startet eine Non-Login-Shell, `~/.profile` bleibt ungelesen) — immer
+`ssh claw 'bash -lc "cargo …"'` oder der volle Pfad; und **der Speicher ist die
+enge Stelle**, Workspace-Builds laufen mit `-j 2`, nicht parallel.
+
+Provisioniert ist **nur claw**: dort laufen Kern und Schale (headless kompiliert,
+`cargo test`, kein Display). **dell** bleibt der Desktop-Prüfstand für echte
+Hotkeys, Tray und AppImage; think und elite haben keine Rust-Toolchain.
 
 ## Schritt 4 — die Spikes, Linux zuerst
 
@@ -72,6 +79,28 @@ Einfügen aus einem anderen Programm, Standard „Merge Formatting" — bleiben
 `h1`–`h6` echte Überschriften-Formatvorlagen oder werden sie zu Fließtext?
 
 Erkenntnisse danach nach `docs/ai/PITFALLS.md`.
+
+## 🟡 In Arbeit — #12 Linux-Spike (2026-11-20)
+
+Gemessen auf **think** (Ubuntu 26.04.1, GNOME Shell 50.1, Wayland,
+`xdg-desktop-portal` 1.21.1 mit Backend `xdg-desktop-portal-gnome` 50.0);
+Wegwerfcode liegt unter `/tmp/dw-linux-spike/` auf think, nichts davon im Repo:
+
+- **Frage 2 (GlobalShortcuts):** Portal und `host.portal.Registry` sind vorhanden
+  (`version = 1`). Das App-ID-Gate ist schärfer als im Issue vermutet und steht als
+  gemessener Befund in `PITFALLS.md`: der cgroup-Scope `app-<id>@…` **und** eine
+  installierte `.desktop`-Datei sind beide nötig; ein `app_id`-Schlüssel in den
+  Optionen wird ignoriert.
+- **Offen und nicht ohne Mensch messbar:** die Erst-Einwilligung
+  (`BindShortcuts`), ihr Bestand über einen Neustart, und die Injection aus Frage 3.
+  think ist seit Stunden gesperrt (`IdleHint=yes`), **elite** (X11, Frage 1) und
+  **dell** waren nicht erreichbar.
+- **Host-Regel des Eigentümers (2026-11-20):** der Windows-Laptop ist für die
+  **Windows**-Arbeit da; Linux-Messungen laufen auf einem Linux-Prüfstand, nicht
+  per SSH vom Windows-Host aus. #19 auf claw war die Ausnahme (Provisioning).
+
+Menschfrei noch messbar: Frage 4 (Zwischenablage-HTML), Frage 6 (Audio 30 s),
+Teile von Frage 5 (Tray/Autostart) und die Negativproben aus Frage 7.
 
 ## Schritt 5 — hardwarefrei, aber erst nach dem Provisioning: #4 Domäne, #5 DSP-Port, #10 Konverter
 
@@ -162,5 +191,6 @@ Recherchen, zwei Vorgängerprojekten und dem Provisioning-Befund von claw.
 - Kein Code-Signing-Zertifikat vorhanden — weder für Windows noch für macOS.
 - WebView2 ist auf Windows 10/11 vorinstalliert; im Installer prüfen, nicht
   mitliefern.
-- Auf claw fehlen Toolchain und Build-Abhängigkeiten; #19 (Provisioning) ist
-  deshalb der erste Schritt.
+- Auf **claw** ist die Toolchain eingerichtet (#19, 2026-11-20: Rust 1.100.0 mit
+  `clippy`/`rustfmt`, Tauri-Abhängigkeiten, `appimagetool`). **think** und **elite**
+  haben kein `cargo`; **dell** bleibt der Desktop-Prüfstand.

@@ -3,7 +3,7 @@ type: State
 title: Zustand
 description: Was existiert, was noch nicht, und wie man es prüft.
 tags: [zustand]
-generated: { by: opencode/general, at: 2026-11-20T16:42:05Z }
+generated: { by: opencode/general, at: 2026-11-20T18:20:00Z }
 status: stable
 ---
 
@@ -24,14 +24,16 @@ status: stable
 | `docs/ai/STATE.md` | diese Datei |
 | `AGENTS.md` | Stack, Schichtungsregel, Verifikationsbefehle |
 | `LICENSE-MIT`, `LICENSE-APACHE` | dual lizenziert, `MIT OR Apache-2.0` |
-| Issues | Epic #3 mit offenen Sub-Issues #1, #4–#10 und #12–#19; #2 und #11 geschlossen; #3 ausgegrillt |
+| Issues | Epic #3 mit offenen Sub-Issues #1, #4–#10 und #12–#18; #2, #11 und #19 geschlossen; #3 ausgegrillt |
 
 ## Existiert nicht
 
 - Kein `Cargo.toml`, kein `src/`, kein `package.json` — **null Produktcode**.
-- Keine Tests, keine CI. `cargo test` läuft ins Leere, weil es kein Crate gibt
-  und auf einem frischen Linux-Host auch kein `cargo` (Befund auf claw,
-  2026-11-16; #19 richtet Toolchain und Build-Abhängigkeiten ein).
+- Keine Tests, keine CI. `cargo test` läuft ins Leere, weil es kein Crate gibt.
+  Die Toolchain auf **claw** ist seit #19 bereit (2026-11-20: Rust 1.100.0 mit
+  `clippy`/`rustfmt`, Tauri-Abhängigkeiten, `libasound2-dev`, `appimagetool`);
+  auf **think** und **elite** gibt es kein `cargo`, dort ist es auch nicht
+  vorgesehen.
 - Keine Windows-VM auf think: qemu, libvirt, OVMF und swtpm sind installiert,
   es ist aber noch kein Gast definiert.
 - Keine Linux- und keine macOS-Schale; die Linux-Schale ist der nächste
@@ -45,11 +47,11 @@ Im Moment gibt es nichts zu verifizieren außer der Dokumentenkonsistenz:
 Regeln nennen. `CONTEXT.md` ist dabei die Quelle der Begriffe, `DOMAIN.md` die
 Quelle der Invarianten; wer einen Begriff ändert, ändert ihn zuerst dort.
 
-Der erste grüne `cargo`-Commit setzt #19 (Provisioning) voraus. Danach laufen
-**#4** (Domänenkern), **#5** (DSP-Port) und **#10** (Konverter) parallel zu den
-Spikes — alle drei ohne Hardware und ohne Netz, also auf Linux lauffähig. Die
-Spikes haben ihre eigene Reihenfolge: #12 (Linux) vor #13 (macOS) vor #1
-(Windows).
+Der erste grüne `cargo`-Commit setzt #19 (Provisioning) voraus — das ist seit
+2026-11-20 erledigt (claw). Danach laufen **#4** (Domänenkern), **#5** (DSP-Port)
+und **#10** (Konverter) parallel zu den Spikes — alle drei ohne Hardware und ohne
+Netz, also auf Linux lauffähig. Die Spikes haben ihre eigene Reihenfolge:
+#12 (Linux) vor #13 (macOS) vor #1 (Windows).
 
 Ohne Hardware testbar bleibt der Fast Path (#8), sobald die **Fähigkeitsleiter**
 existiert: ein Fake mit `{foreground_window: nein, insert_keystroke: nein}` ist
@@ -57,7 +59,7 @@ Wayland, einer mit `{ja, ja}` ist X11 oder Windows.
 
 ## Nächster Schritt
 
-`docs/ai/HANDOFF.md`, Schritt 3: **#19 Provisioning** — rustup, `libwebkit2gtk-4.1-dev`,
-`libgtk-3-dev`, `librsvg2-dev`, `libayatana-appindicator3-dev`, `patchelf`,
-`libfuse2`, `appimagetool` auf **claw** (nur dort; dell bleibt der Prüfstand für
-echte Hotkeys und Tray). Danach #12 (Linux-Schale), parallel #4, #5 und #10.
+`docs/ai/HANDOFF.md`, Schritt 4: **#12 Linux-Spike** — auf einem Linux-Prüfstand
+(elite für X11, think/dell für GNOME/Wayland), nicht per SSH vom Windows-Host.
+#19 (Provisioning auf claw) ist erledigt; parallel zu den Spikes laufen #4, #5
+und #10.

@@ -132,18 +132,26 @@ in [DOMAIN.md](DOMAIN.md).
 
 ## Linux und Wayland
 
-Befunde aus dem Provisioning an #11 (claw, 2026-11-16). Sie sind Warnungen aus
-dem Bau, keine Messungen; Belege stehen noch aus.
+Befunde aus dem Provisioning (#19, claw, 2026-11-16) und aus den ersten Messungen
+des Linux-Spikes (#12, think, GNOME 50.1, 2026-11-20). Wo eine Messung vorliegt,
+steht sie hier; die Fragen 1, 3, 5 und 7 sind noch Warnungen aus dem Bau.
 
-- **Das GlobalShortcuts-Portal verlangt unter GNOME eine gedeckte App-ID.**
-  `CreateSession` braucht eine reverse-DNS-App-ID, die eine **installierte**
-  `.desktop`-Datei deckt. Eine AppImage aus `~/Downloads` hat keine — und GNOME
-  lehnt dann **stumm** jede Bindung ab: kein Fehler, keine Bindung, kein
-  Hinweis. Pflichten der Schale: `.desktop` + Icon beim ersten Start nach
-  `~/.local/share/applications/` schreiben,
-  `org.freedesktop.host.portal.Registry.Register(app_id)` vor `CreateSession`
-  aufrufen, Autostart bei jedem Start mit dem aktuellen `$APPIMAGE` neu
-  schreiben.
+- **Das GlobalShortcuts-Portal leitet die App-ID aus dem Prozess ab, nicht aus den
+  Optionen** (gemessen auf think, GNOME Shell 50.1, 2026-11-20). Ein `app_id`-
+  Schlüssel in den `CreateSession`-Optionen wird **ignoriert**. Nötig sind
+  **beides**: ein cgroup-Scope `app-<id>@….service` **und** eine installierte
+  `.desktop`-Datei, die die ID deckt. Fehlt eines, antwortet `CreateSession` mit
+  `org.freedesktop.portal.Error.NotAllowed / An app id is required` — ein Fehler,
+  aber kein stummes Nichts. Ein aus einer SSH-Sitzung gestarteter Prozess passiert
+  das Gate nie, auch nicht über `gio launch` (landet im `session-*.scope`);
+  `systemd-run --user --unit=app-<id>@…` mit installierter `.desktop` passiert es.
+  Pflichten der Schale bleiben: `.desktop` + Icon beim ersten Start nach
+  `~/.local/share/applications/` schreiben, Autostart mit aktuellem `$APPIMAGE`
+  neu schreiben.
+- **`Registry.Register` ersetzt den Scope nicht.** Von einer Verbindung ohne
+  App-Scope antwortet das Portal
+  `Error.Failed / Could not register app ID: Connection already associated with an
+  application ID` (think, 2026-11-20).
 - **GNOME 45–47 liefern kein GlobalShortcuts-Backend.** Ohne Backend gibt es
   keine globalen Hotkeys — das ist die Plattform, nicht ein Fehler. Die App muss
   dann über Fenster und Tray bedienbar bleiben; eine Fehlermeldung beim Start ist
@@ -158,9 +166,21 @@ dem Bau, keine Messungen; Belege stehen noch aus.
   Portal-Dialog gilt für die Sitzung; nach dem Neustart muss sie neu erteilt
   werden. Kein verlässlicher Einfügeweg, also nicht darauf bauen.
 - **AppImage ohne `.desktop` ist keine App.** Ohne den Eintrag gibt es weder
-  Portal-Bindung noch Autostart; dazu fehlt `libfuse2` auf Ubuntu ≥ 22.04
-  (bestätigt auf claw) ⇒ `--appimage-extract-and-run` oder einmalig
-  nachinstallieren.
+  Portal-Bindung noch Autostart; auf Ubuntu ≥ 24.04 heißt `libfuse2` außerdem
+  `libfuse2t64` (auf claw 2026-11-20 bestätigt) ⇒ einmalig nachinstallieren oder
+  `--appimage-extract-and-run`.
+- **`rustup --profile minimal` bringt weder `clippy` noch `rustfmt`.** Die
+  Verifikation aus `AGENTS.md` scheitert dann mit „component not installed";
+  `rustup component add clippy rustfmt` gehört zum Provisioning (claw,
+  2026-11-20).
+- **`ssh host 'cargo …'` findet `cargo` nicht.** sshd startet eine Non-Login-
+  Shell, `~/.profile` bleibt ungelesen, `~/.bashrc` hilft dort ebenfalls nicht.
+  Remote-Aufrufe brauchen `ssh host 'bash -lc "cargo …"'` oder den vollen Pfad
+  `/home/<user>/.cargo/bin/cargo` (claw, 2026-11-20).
+- **3 GB RAM sind die Grenze, nicht die Software.** Auf claw (3,8 GB, davon
+  ~0,7 GB frei, Swap fast voll) bauen Workspace-Aufrufe mit `-j 2`; parallele
+  Builds laufen ins OOM. `cpal` braucht `libasound2-dev`, nicht nur
+  `libasound2t64`.
 
 ## macOS
 
