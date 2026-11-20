@@ -183,7 +183,7 @@ auffällt). #19 (Provisioning) richtet sie ein, dazu `libwebkit2gtk-4.1-dev`,
 ## Repository und Kontakt
 
 - GitHub: `georgernstgraf/diktatwerkstatt`
-- Issues: GitHub Issues; Epic #3 mit den Sub-Issues #1, #4–#13, #19 (#2 geschlossen).
+- Issues: GitHub Issues; Epic #3 mit den Sub-Issues #1, #4–#19 (#2 geschlossen).
   Reihenfolge: #19 Provisioning → #12 Linux-Spike → #13 macOS-Spike → #1
   Windows-Spike; hardwarefrei parallel #4/#5/#10.
 - Eigentümer: Georg Graf <grafg@spengergasse.at>

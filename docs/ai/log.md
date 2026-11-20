@@ -26,7 +26,7 @@
   Abgrenzung. [../../README.md](../../README.md) — „Windows-Hilfsprogramm" →
   drei Ziele, ein Kern. [../../AGENTS.md](../../AGENTS.md) — Stack „Tauri mit drei
   Webviews", Ausschlussregel mit Linux-Ausnahme, Status Doku-Phase, Issues
-  #1/#4–#13/#19. [HANDOFF.md](HANDOFF.md) und [STATE.md](STATE.md) — Reihenfolge
+  #1/#4–#19. [HANDOFF.md](HANDOFF.md) und [STATE.md](STATE.md) — Reihenfolge
   Provisioning (#19) → Linux-Spike (#12) → macOS-Spike (#13) → Windows-Spike (#1).
   [index.md](index.md) — Beschreibungen nachgezogen.
 * **Entfällt (markiert, nicht gelöscht)**: „Taste schlucken" via `WH_KEYBOARD_LL`
@@ -52,6 +52,10 @@
   `CONTEXT.md`, „Windows-Zwischenablage", „geschluckt", `WH_KEYBOARD_LL`,
   `cfg(target_os)`, E1–E10, „Windows-only"-Reste, OKF-Envelopes, Log-Eintrag —
   alle grün.
+* **Korrektur**: Issue-Landschaft in `AGENTS.md`, `STATE.md` und `HANDOFF.md`
+  auf #1 und #4–#19 vervollständigt — die Plattformschalen #14–#16 und die
+  Paketierung #17/#18 fehlten. Der Belegstatus der Linux-/macOS-Fallstricke ist
+  in `index.md` und `STATE.md` präzisiert.
 
 ## 2026-11-19 — Kopier-Knopf als zweiter Weg
 

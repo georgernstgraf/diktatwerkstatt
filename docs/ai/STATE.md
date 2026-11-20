@@ -3,7 +3,7 @@ type: State
 title: Zustand
 description: Was existiert, was noch nicht, und wie man es prüft.
 tags: [zustand]
-generated: { by: opencode/general, at: 2026-11-20T16:23:16Z }
+generated: { by: opencode/general, at: 2026-11-20T16:33:41Z }
 status: stable
 ---
 
@@ -17,14 +17,14 @@ status: stable
 | `CONTEXT.md` | Vokabular inkl. **Plattformschale**, **Fähigkeitsleiter**, **Diktierplatz**, bewusster Abgrenzungen und Zustandsübergängen |
 | `docs/ai/DOMAIN.md` | zwei Tabellen, zehn Invarianten, **Fähigkeitsleiter**, Abläufe, Arbeitsverzeichnis, Lieferformate je Plattform, Fehlerfälle |
 | `docs/ai/INTEGRATION.md` | Referenz: wie Handy/OpenWhispr die Bausteine lösen, mit Linux- und macOS-Spalte, mit Quellen; „was wir übernehmen" ist auf Zwischenablage, Tray und Hotkeys zusammengeschrumpft |
-| `docs/ai/PITFALLS.md` | Referenz: Fallstricke aus Audio, STT, Textübergabe, Bedienung, **Linux/Wayland** und **macOS**, mit Quellen |
+| `docs/ai/PITFALLS.md` | Referenz: Fallstricke aus Audio, STT, Textübergabe, Bedienung, **Linux/Wayland** und **macOS**, mit Quellen (Linux/macOS: Warnungen aus dem Bau, Belege folgen mit #12/#13) |
 | `docs/ai/DECISIONS.md` | 34 Entscheidungen, je mit verworfener Alternative — darunter die Beschlusslage E1–E10 vom 2026-11-16 |
 | `docs/ai/index.md`, `docs/ai/log.md` | OKF-Bundle-Einstieg (`okf_version: "0.2"`) und Persistenz-Chronik |
 | `docs/ai/HANDOFF.md` | Reihenfolge der nächsten Sitzung inkl. VM-Lage und Provisioning-Befund |
 | `docs/ai/STATE.md` | diese Datei |
 | `AGENTS.md` | Stack, Schichtungsregel, Verifikationsbefehle |
 | `LICENSE-MIT`, `LICENSE-APACHE` | dual lizenziert, `MIT OR Apache-2.0` |
-| Issues | Epic #3 mit offenen Sub-Issues #1, #4–#13 und #19; #2 geschlossen; #3 ausgegrillt |
+| Issues | Epic #3 mit offenen Sub-Issues #1 und #4–#19; #2 geschlossen; #3 ausgegrillt |
 
 ## Existiert nicht
 

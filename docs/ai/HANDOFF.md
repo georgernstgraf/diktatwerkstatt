@@ -3,7 +3,7 @@ type: Handoff
 title: Übergabe
 description: Was die nächste Sitzung zuerst tut, in welcher Reihenfolge, und was schon bekannt ist.
 tags: [wissensbasis, handoff]
-generated: { by: opencode/general, at: 2026-11-20T16:23:16Z }
+generated: { by: opencode/general, at: 2026-11-20T16:33:41Z }
 status: stable
 ---
 
@@ -96,7 +96,10 @@ können neben dem Provisioning beginnen.
 | 1 | #6 STT/LLM-Client | braucht #1 nur zum manuellen Test gegen die echte API |
 | 2 | #7 Workbench | braucht #6 (Prompt anwenden) und #4 (FIFO-Liste) |
 | 3 | #8 Fast Path | braucht die Fähigkeitsleiter (Testbarkeit) und #4; die Hardware belegt nur noch die Plattform |
-| 4 | #9 Paketierung | Windows NSIS, Linux AppImage/.deb (E7), macOS `.dmg`; braucht #7 und #8 |
+| 4 | #9 Paketierung Windows | NSIS; Linux (#17, AppImage/.deb nach E7) und macOS (#18, `.dmg`/Notarisierung) folgen den Schalen; braucht #7 und #8 |
+
+Die Plattformschalen entstehen nach den Spikes: **#14 Linux**, **#15 macOS**,
+**#16 Windows**. #14 kann parallel zu #12 beginnen; #16 erst, wenn #1 belegt ist.
 
 ## Offene Entscheidungen
 
