@@ -3,7 +3,7 @@ type: State
 title: Zustand
 description: Was existiert, was noch nicht, und wie man es prüft.
 tags: [zustand]
-generated: { by: opencode/general, at: 2026-11-20T16:33:41Z }
+generated: { by: opencode/general, at: 2026-11-20T16:36:52Z }
 status: stable
 ---
 
@@ -24,7 +24,7 @@ status: stable
 | `docs/ai/STATE.md` | diese Datei |
 | `AGENTS.md` | Stack, Schichtungsregel, Verifikationsbefehle |
 | `LICENSE-MIT`, `LICENSE-APACHE` | dual lizenziert, `MIT OR Apache-2.0` |
-| Issues | Epic #3 mit offenen Sub-Issues #1 und #4–#19; #2 geschlossen; #3 ausgegrillt |
+| Issues | Epic #3 mit offenen Sub-Issues #1, #4–#10 und #12–#19; #2 und #11 geschlossen; #3 ausgegrillt |
 
 ## Existiert nicht
 

@@ -56,6 +56,8 @@
   auf #1 und #4–#19 vervollständigt — die Plattformschalen #14–#16 und die
   Paketierung #17/#18 fehlten. Der Belegstatus der Linux-/macOS-Fallstricke ist
   in `index.md` und `STATE.md` präzisiert.
+* **Abschluss**: Issue #11 geschlossen; #19 als Sub-Issue des Epics verlinkt,
+  #3-Body auf die Drei-Ziele-Lage gezogen.
 
 ## 2026-11-19 — Kopier-Knopf als zweiter Weg
 
