@@ -3,7 +3,7 @@ type: Handoff
 title: Übergabe
 description: Was die nächste Sitzung zuerst tut, in welcher Reihenfolge, und was schon bekannt ist.
 tags: [wissensbasis, handoff]
-generated: { by: opencode/general, at: 2026-11-20T16:33:41Z }
+generated: { by: opencode/general, at: 2026-11-20T16:39:26Z }
 status: stable
 ---
 
@@ -44,9 +44,9 @@ vor jedem Commit. Befund auf **claw** (2026-11-16):
 | sudo | passwortlos verfügbar |
 | Maschine | Ubuntu 26.04.1, 2 Kerne, 3 GB RAM, 54 GB frei |
 
-Arbeitsteilung: **claw** baut den Kern (headless, `cargo test`, kein Display),
-**dell** (Desktop) baut Schale, Hotkeys, Tray und AppImage — dort gibt es echte
-Hotkeys und eine echte Tray-Probe.
+Provisioniert wird **nur claw** (#19): dort laufen Kern und Schale (headless
+kompiliert, `cargo test`, kein Display). **dell** bleibt der Desktop-Prüfstand
+für echte Hotkeys, Tray und AppImage — ohne Provisioning in #19.
 
 ## Schritt 4 — die Spikes, Linux zuerst
 

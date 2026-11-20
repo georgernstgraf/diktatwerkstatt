@@ -3,7 +3,7 @@ type: State
 title: Zustand
 description: Was existiert, was noch nicht, und wie man es prüft.
 tags: [zustand]
-generated: { by: opencode/general, at: 2026-11-20T16:36:52Z }
+generated: { by: opencode/general, at: 2026-11-20T16:39:26Z }
 status: stable
 ---
 
@@ -58,5 +58,5 @@ Wayland, einer mit `{ja, ja}` ist X11 oder Windows.
 
 `docs/ai/HANDOFF.md`, Schritt 3: **#19 Provisioning** — rustup, `libwebkit2gtk-4.1-dev`,
 `libgtk-3-dev`, `librsvg2-dev`, `libayatana-appindicator3-dev`, `patchelf`,
-`libfuse2`, `appimagetool` auf claw und dell. Danach #12 (Linux-Schale), parallel
-#4, #5 und #10.
+`libfuse2`, `appimagetool` auf **claw** (nur dort; dell bleibt der Prüfstand für
+echte Hotkeys und Tray). Danach #12 (Linux-Schale), parallel #4, #5 und #10.

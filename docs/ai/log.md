@@ -58,6 +58,8 @@
   in `index.md` und `STATE.md` präzisiert.
 * **Abschluss**: Issue #11 geschlossen; #19 als Sub-Issue des Epics verlinkt,
   #3-Body auf die Drei-Ziele-Lage gezogen.
+* **Korrektur**: #19 (Provisioning) gilt nur für **claw**; dell bleibt der
+  Desktop-Prüfstand für echte Hotkeys und Tray, ohne Provisioning.
 
 ## 2026-11-19 — Kopier-Knopf als zweiter Weg
 
