@@ -55,7 +55,8 @@ geladen:
 
 **Doku-Phase, kein Code.** Es wird kein Produktcode geschrieben, bevor die
 Spikes die Bausteine belegt haben — Reihenfolge: Provisioning (#19), Linux-Spike
-(#12), macOS-Spike (#13), Windows-Spike (#1); hardwarefrei parallel #4/#5/#10.
+(#12), macOS-Spike (#13), Windows-Spike (#1); nach dem Provisioning laufen
+#4/#5/#10 hardwarefrei parallel zu den Spikes.
 Das Grill-Ergebnis steht als Kommentar an Epic #3 und ist in `CONTEXT.md`,
 `DOMAIN.md` und `DECISIONS.md` eingearbeitet; die Beschlusslage vom 2026-11-16
 (drei Ziele, kein Tastenhook, Fähigkeitsleiter) in `docs/ai/DECISIONS.md`, E1–E10.
@@ -185,7 +186,7 @@ auffällt). #19 (Provisioning) richtet sie ein, dazu `libwebkit2gtk-4.1-dev`,
 - GitHub: `georgernstgraf/diktatwerkstatt`
 - Issues: GitHub Issues; Epic #3 mit den Sub-Issues #1, #4–#19 (#2 geschlossen).
   Reihenfolge: #19 Provisioning → #12 Linux-Spike → #13 macOS-Spike → #1
-  Windows-Spike; hardwarefrei parallel #4/#5/#10.
+  Windows-Spike; nach dem Provisioning hardwarefrei parallel dazu #4/#5/#10.
 - Eigentümer: Georg Graf <grafg@spengergasse.at>
 
 ## Sprache

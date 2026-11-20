@@ -1,5 +1,19 @@
 # Persistenz-Log
 
+## 2026-11-20 — Reihenfolge bestätigt: Provisioning zuerst, dann Spikes und Kerne parallel (#19)
+
+* **Update**: [HANDOFF.md](HANDOFF.md) — Schritt 5 beginnt nicht mehr „neben dem
+  Provisioning", sondern **nach** #19 und läuft dann parallel zu den Spikes; die
+  Reihenfolge selbst bleibt #19 → #12 → #13 → #1. Der Grund: ohne `cargo` gibt es
+  keinen grünen Commit. [STATE.md](STATE.md) — der Abschnitt „Verifikation" sagte
+  die Reihenfolge zweimal verschieden (einmal Kerne vor den Spikes, einmal
+  parallel); jetzt einmal: #19 zuerst, danach #4/#5/#10 parallel zu
+  #12 → #13 → #1. [../../AGENTS.md](../../AGENTS.md) — „hardwarefrei parallel
+  #4/#5/#10" an beiden Stellen um „nach dem Provisioning" ergänzt.
+* **Verworfen**: #4/#5/#10 schon während des Provisionings anfangen (kein
+  `cargo`, also kein grüner Commit, den `AGENTS.md` verlangt); die Spikes hinter
+  die Kerne schieben (dann bremsen die Hardware-Befunde den ganzen Strang).
+
 ## 2026-11-20 — Drei Ziele, Hook-freie Bedienung, Fähigkeitsleiter (#11)
 
 * **Creation**: Beschlusslage E1–E10 des Eigentümers (2026-11-16) in die Doku

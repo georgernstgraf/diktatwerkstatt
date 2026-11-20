@@ -3,7 +3,7 @@ type: State
 title: Zustand
 description: Was existiert, was noch nicht, und wie man es prüft.
 tags: [zustand]
-generated: { by: opencode/general, at: 2026-11-20T16:39:26Z }
+generated: { by: opencode/general, at: 2026-11-20T16:42:05Z }
 status: stable
 ---
 
@@ -45,10 +45,11 @@ Im Moment gibt es nichts zu verifizieren außer der Dokumentenkonsistenz:
 Regeln nennen. `CONTEXT.md` ist dabei die Quelle der Begriffe, `DOMAIN.md` die
 Quelle der Invarianten; wer einen Begriff ändert, ändert ihn zuerst dort.
 
-Der erste grüne `cargo`-Commit setzt #19 (Provisioning) voraus. Danach kommen
-**#4** (Domänenkern), **#10** (Konverter) und **#5** (DSP-Port) — alle drei ohne
-Hardware und ohne Netz, also auf Linux lauffähig. Die Spikes folgen: #12 (Linux)
-vor #13 (macOS) vor #1 (Windows).
+Der erste grüne `cargo`-Commit setzt #19 (Provisioning) voraus. Danach laufen
+**#4** (Domänenkern), **#5** (DSP-Port) und **#10** (Konverter) parallel zu den
+Spikes — alle drei ohne Hardware und ohne Netz, also auf Linux lauffähig. Die
+Spikes haben ihre eigene Reihenfolge: #12 (Linux) vor #13 (macOS) vor #1
+(Windows).
 
 Ohne Hardware testbar bleibt der Fast Path (#8), sobald die **Fähigkeitsleiter**
 existiert: ein Fake mit `{foreground_window: nein, insert_keystroke: nein}` ist

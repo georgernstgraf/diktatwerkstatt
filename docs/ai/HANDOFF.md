@@ -3,7 +3,7 @@ type: Handoff
 title: Übergabe
 description: Was die nächste Sitzung zuerst tut, in welcher Reihenfolge, und was schon bekannt ist.
 tags: [wissensbasis, handoff]
-generated: { by: opencode/general, at: 2026-11-20T16:39:26Z }
+generated: { by: opencode/general, at: 2026-11-20T16:42:05Z }
 status: stable
 ---
 
@@ -73,10 +73,12 @@ Einfügen aus einem anderen Programm, Standard „Merge Formatting" — bleiben
 
 Erkenntnisse danach nach `docs/ai/PITFALLS.md`.
 
-## Schritt 5 — hardwarefrei parallel: #4 Domäne, #5 DSP-Port, #10 Konverter
+## Schritt 5 — hardwarefrei, aber erst nach dem Provisioning: #4 Domäne, #5 DSP-Port, #10 Konverter
 
-Alle drei brauchen keine Hardware und kein Netz, laufen also auch auf Linux und
-können neben dem Provisioning beginnen.
+Alle drei brauchen keine Hardware und kein Netz, laufen also auch auf Linux —
+aber sie brauchen `cargo`. Sie beginnen deshalb **nach** #19 und laufen dann
+parallel zu den Spikes. Die Reihenfolge der Spikes ändert sich dadurch nicht:
+#19 → #12 → #13 → #1, dazu #4/#5/#10 ab dem Moment, in dem die Toolchain steht.
 
 - **#4** hat jetzt ein sehr kleines Ziel: `diktat` und `prompt` gemäß
   `DOMAIN.md`, das Arbeitsverzeichnis mit `NNN.wav`/`NNN.txt`, die zehn
