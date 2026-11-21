@@ -84,4 +84,12 @@ pub enum Error {
     /// Das Dateisystem hat den Vorgang abgelehnt.
     #[error("Dateisystem: {0}")]
     Io(#[from] std::io::Error),
+
+    /// Das polierte Transkript enthält ein Konstrukt, das die Lieferung nicht
+    /// kennt — Tabelle, Code, Bild, Link, kursiv, Roh-HTML und so weiter.
+    ///
+    /// Der Fehler wird gemeldet, nicht repariert (`docs/ai/DOMAIN.md`,
+    /// „Lieferung").
+    #[error("Lieferung: {0}")]
+    Delivery(#[from] crate::delivery::DeliveryError),
 }

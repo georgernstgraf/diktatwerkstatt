@@ -321,6 +321,24 @@ Für alle drei Ziele gleich:
   Vordergrundfenster, unterbleibt das Einfügen, auch bei `always`. Die
   Zwischenablage behält den Text in jedem Fall.
 
+### Was `deliver` genau ausgibt
+
+- **Blöcke trennt ein einzelner Zeilenumbruch (`\n`)**, keine Leerzeile: im
+  Reintext wird jeder Umbruch in Word ein Absatz, eine Leerzeile ein leerer
+  Absatz. Weder `text` noch `html` enden mit einem Umbruch.
+- **Ein Absatz wird ein `<p>`.** Mehrere Zeilen eines Absatzes sind ein weicher
+  Umbruch und werden mit einem Leerzeichen verbunden.
+- **Eine ungeordnete Liste wird ein `<ul>`** mit einem `<li>` je Zeile; im
+  Reintext eine Zeile je Eintrag.
+- **Ein Eintrag einer geordneten Liste wird ein eigener `<p>`** mit seinem
+  Ziffernmarker, so wie er geschrieben ist (`1. …`, `1) …`). Im Reintext eine
+  Zeile je Eintrag. **Kein `<ol>`.**
+- **Fett wird `<strong>`**, auch in Überschrift und Listenpunkt. Nicht
+  verschachtelt: Fett in Fett, Link in Fett, Code in Fett sind Fehler.
+- Der Fehler nennt die 1-basierte **Zeile** und das **Konstrukt**
+  (`DeliveryError`), damit die Workbench ihn anzeigen kann, statt still zu
+  liefern.
+
 ### Formate und Ausschluss je Plattform
 
 | Plattform | Formate | Ausschluss aus History/Cloud | Belastbarkeit auf diesem Ziel |

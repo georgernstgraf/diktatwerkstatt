@@ -15,17 +15,19 @@ status: stable
 |---|---|
 | `Cargo.toml` | Workspace (Edition 2024, `resolver = "3"`, `rust-version` 1.89), Abhängigkeiten zentral: `rusqlite` 0.43 (`bundled`), `chrono`, `thiserror` |
 | `crates/core` | **Domäne aus #4**: `store.rs` (zwei `STRICT`-Tabellen, `user_version = 1`, WAL/`synchronous = FULL`), `fragments.rs` (Arbeitsverzeichnis `NNN.wav`/`NNN.txt`, `.tmp` + `rename`), `error.rs` (typisierte Fehler) |
+| `crates/core/src/delivery.rs` | **Konverter aus #10**: `deliver(markdown) -> Delivery { html, text }` — constrained Markdown als semantisches Fragment (`p`, `h1`–`h6`, `ul`/`li`, `strong`), geordnete Listen als Text mit Ziffern, alles andere als `DeliveryError` mit Zeile und Konstrukt; kein `CF_HTML`-Umschlag |
 | `crates/core/src/audio/` | **DSP-Kern aus #5**: `pcm.rs` (Hochpass 80 Hz mit `i16`-Quantisierung, Rahmenpegel, Upload-Konditionierung, WAV), `silence.rs` (Q, Achse `0,65·M + 100`, Flächenzentroid, Zwangsschnitt), `seam.rs` (Q-Gate, Pre-roll, Prompt ≤ 96 Zeichen, Echo-Trim ≤ 8 Token, Überlappung), `fragmenter.rs` (Slice 21 s, Suchfenster 6,3 s, Spool, `NNN.wav`, Worker) |
 | `crates/core/tests/invarianten.rs` | 15 Tests: einer je Invariante, dazu die halb geschriebene `.txt`, die leere `.txt`, die 999-Grenze, die Wiederaufnahme, die Prompt-Bibliothek |
 | `crates/core/tests/audio.rs` | 26 Tests: die exakten Kotlin-Schnittwerte („bist"-Regression, Frikativ-Ausschluss, 25-Hz-Brummen, Flüsterregime, Verstärkungsinvarianz, Raumwechsel), Hochpass/Rahmenpegel, Upload-Konditionierung, WAV-Rundlauf |
 | `crates/core/tests/naht.rs` | 28 Tests: Prompt-Carry-over, Echo-Trim (inkl. Fehlgriff-Toleranz), Token-Überlappung, Policy-Grenzen (`Q == quality_min` bleibt kahl), Pre-roll/Upload |
 | `crates/core/tests/fragmentierung.rs` | 19 Tests: Slice/Suchfenster, Lückenlosigkeit aus den Dateien, genau N Dateien, Pause im Fenster, früher Dip unsichtbar, Rest ganz, Q-Gate und Policies, Flüsterregime, 999-Grenze sticky, Spool-Trim, Worker (Byte-Exaktheit, Schreibfehler) |
+| `crates/core/tests/lieferung.rs` | 22 Tests: die neun Fälle aus #10 (Umlaute byte-gleich, `h1`–`h6`, `ul`/`li`, `strong`, geordnete Liste als Text, typisierte Fehler, leere Nutzlast, kein abschließender Umbruch, kein Umschlag), dazu Grenzen des Parsers (Zeile im Fehler, offenes Fett, `-5` kein Marker, CRLF, Maskierung, `[1]` bleibt Text) |
 | `README.md` | Beschreibung, Abgrenzung, Architekturbild, Lizenz — drei Ziele, ein Kern |
 | `CONTEXT.md` | Vokabular inkl. **Plattformschale**, **Fähigkeitsleiter**, **Diktierplatz**, bewusster Abgrenzungen und Zustandsübergängen |
 | `docs/ai/DOMAIN.md` | zwei Tabellen, zehn Invarianten, **Fähigkeitsleiter**, Abläufe, Arbeitsverzeichnis, Lieferformate je Plattform, Fehlerfälle |
 | `docs/ai/INTEGRATION.md` | Referenz: wie Handy/OpenWhispr die Bausteine lösen, mit Linux- und macOS-Spalte, mit Quellen; „was wir übernehmen" ist auf Zwischenablage, Tray und Hotkeys zusammengeschrumpft |
 | `docs/ai/PITFALLS.md` | Referenz: Fallstricke aus Audio, STT, Textübergabe, Bedienung, **Windows**, **Linux/Wayland**, **Linux/X11** und **macOS**, mit Quellen; X11 und Windows gemessen, macOS und Wayland-Fragen 3/5/7 noch aus dem Bau |
-| `docs/ai/DECISIONS.md` | 34 Entscheidungen, je mit verworfener Alternative — darunter die Beschlusslage E1–E10 vom 2026-11-16 |
+| `docs/ai/DECISIONS.md` | 37 Entscheidungen, je mit verworfener Alternative — darunter die Beschlusslage E1–E10 vom 2026-11-16 |
 | `docs/ai/index.md`, `docs/ai/log.md` | OKF-Bundle-Einstieg (`okf_version: "0.2"`) und Persistenz-Chronik |
 | `docs/ai/HANDOFF.md` | Reihenfolge der nächsten Sitzung inkl. VM-Lage und Provisioning-Befund |
 | `docs/ai/STATE.md` | diese Datei |
@@ -57,12 +59,14 @@ cargo clippy --all-targets -- -D warnings
 cargo test
 ```
 
-Grün heißt hier: die 88 Tests laufen durch — 15 Invarianten, 26 DSP, 28 Naht,
-19 Fragmentierung —, ohne App, ohne Netz, ohne Audio-Hardware. Ein Test zählt
-nur, wenn er die Aussage bricht: am 2026-11-21 gegengeprüft an drei Invarianten
-(Append-Sperre, Lückenprüfung, Reihenfolge im Abschluss) und an zwei
-DSP-Eigenschaften (Suchfenster ignoriert ⇒ vier Fragmentierungstests rot;
-Q-Gate auf „immer" ⇒ drei Nahttests rot).
+Grün heißt hier: die 111 Tests laufen durch — 15 Invarianten, 26 DSP, 28 Naht,
+19 Fragmentierung, 22 Lieferung und ein Doctest —, ohne App, ohne Netz, ohne
+Audio-Hardware. Ein Test zählt nur, wenn er die Aussage bricht: am 2026-11-21
+gegengeprüft an drei Invarianten (Append-Sperre, Lückenprüfung, Reihenfolge im
+Abschluss), an zwei DSP-Eigenschaften (Suchfenster ignoriert ⇒ vier
+Fragmentierungstests rot; Q-Gate auf „immer" ⇒ drei Nahttests rot) und an drei
+Konverter-Regeln (geordnete Liste als `<ol>` ⇒ zwei Tests rot; kursiv
+durchgereicht ⇒ ein Test rot; kein `&`-Escaping ⇒ ein Test rot).
 
 Daneben bleibt die Dokumentenkonsistenz: `CONTEXT.md` ist die Quelle der Begriffe,
 `DOMAIN.md` die Quelle der Invarianten; wer einen Begriff ändert, ändert ihn
@@ -74,12 +78,11 @@ Wayland, einer mit `{ja, ja}` ist X11 oder Windows.
 
 ## Nächster Schritt
 
-**#10 Konverter** in dasselbe Crate — das Gegenstück zur Audioseite:
-`deliver(markdown) -> Delivery { html, text }` (semantisches Fragment plus
-reiner Text, neun Testfälle im Issue). Danach #6 STT/LLM-Client, der die
-Naht-Bausteine verdrahtet: `Committed::stitched` entscheidet über
-`upload`/`prompt`, danach `trim_echo`, und `condition` geht vor den Upload.
-#4, #5 und #10 liegen alle in `crates/core`, laufen also nacheinander.
+**#6 STT-/LLM-Client** — er verdrahtet die Naht-Bausteine aus #5:
+`Committed::stitched` entscheidet über `upload`/`prompt`, danach `trim_echo`,
+und `condition` geht vor den Upload. Danach #7 Workbench, #8 Fast Path. Der
+Konverter (#10) steht seit 2026-11-21 und liefert beide Nutzlasten; das
+Schreiben auf die Zwischenablage und den `CF_HTML`-Umschlag baut #8/#16.
 
 Parallel dazu die Spikes (`docs/ai/HANDOFF.md`, Schritt 4): **#12 Linux-Spike**,
 dessen X11-Teil gemessen ist (elite, 2026-11-21: `XGrabKey`,

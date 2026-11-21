@@ -11,6 +11,22 @@ status: stable
 
 Neueste oben. Jeder Eintrag nennt Entscheidung, Grund und verworfene Alternative.
 
+## 2026-11-21 — Lieferung: ein Umbruch zwischen Blöcken, Rubrum je Absatz
+
+**Entscheidung:** `deliver` trennt Blöcke mit **einem** Zeilenumbruch; jeder
+Eintrag einer geordneten Liste wird ein eigener `<p>` mit seinem Ziffernmarker,
+im Reintext eine eigene Zeile. Kein `<ol>`, keine Leerzeilen zwischen Absätzen,
+kein abschließender Umbruch.
+**Grund:** In Word wird jeder Umbruch des Reintexts ein Absatz, eine Leerzeile
+ein leerer Absatz — die Rubrum-Nummerierung eines Antrags ist eine Folge von
+Absätzen mit Abstand. Ein `<ol>` brächte Words eigene Listennummerierung mit,
+die der Nutzer wieder ausschalten müsste; das widerspricht „deutsche
+Rubrum-Nummerierung ist Text, keine Struktur".
+**Verworfen:** Leerzeile zwischen Blöcken (leere Absätze in Word); `<ol>` mit
+`<li>` (Struktur, wo Text gemeint ist); alle Rubrum-Punkte in einem `<p>` mit
+`<br>` (ein Absatz mit weichen Umbrüchen statt einer Folge von Absätzen);
+Markdown unverändert als Reintext (`**fett**` stünde in textonly-Zielen).
+
 ## 2026-11-21 — Fragmentierung: Slice-Modell, Q-Gate, Naht ohne Seitendatei
 
 **Entscheidung:** Der Kern schneidet nach dem **Slice-Modell** von

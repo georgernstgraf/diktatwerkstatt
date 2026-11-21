@@ -11,7 +11,7 @@ status: stable
 
 Arbeitsverzeichnis: `~/repos/georgernstgraf/diktatwerkstatt`
 Repository: https://github.com/georgernstgraf/diktatwerkstatt
-Stand: **der Kern steht (#4, #5), die Schalen fehlen.** Branch `main`. Beschlossen
+Stand: **der Kern steht (#4, #5, #10), die Schalen fehlen.** Branch `main`. Beschlossen
 sind **drei Ziele** (Windows, Linux, macOS) mit einem geteilten Kern und drei
 dünnen Plattformschalen, **kein globaler Tastenhook** und **keine Plattformweiche
 im Kern** — die Beschlusslage steht als E1–E10 in `DECISIONS.md`. Gebaut wird
@@ -116,6 +116,31 @@ Drei Dinge, die #6 wissen muss:
   absichtlich ohne Umbruch. Wer den Rohtext aus Fragmenten baut, muss den
   Trenner an der Naht setzen — heute tut das niemand; gehört zu #6/#7.
 
+## ✅ Erledigt — Schritt 5c: #10 Konverter (2026-11-21, auf think)
+
+`crates/core/src/delivery.rs` steht: `deliver(markdown) -> Delivery { html,
+text }` als reine Funktion, 22 Tests in `tests/lieferung.rs`, zusammen **110
+Tests**. `html` ist das **semantische Fragment** (`p`, `h1`–`h6`, `ul`/`li`,
+`strong`), `text` derselbe Inhalt ohne Markdown; jeder Eintrag einer geordneten
+Liste wird ein eigener Absatz mit seiner Ziffer, nie ein `<ol>`. Der
+`CF_HTML`-Umschlag bleibt beim Windows-Schreiber (#8/#16) — die Offset-Tests
+aus dem Issue sind mit E10 dorthin gewandert, `tests/lieferung.rs` prüft das
+Gegenteil: kein Umschlag.
+
+Drei Dinge, die #8 und #16 wissen müssen:
+
+- **Blöcke trennt ein `\n`**, keine Leerzeile — in Word ist jeder Umbruch ein
+  Absatz, eine Leerzeile ein leerer. `text` und `html` enden ohne Umbruch
+  (`DECISIONS.md`, 2026-11-21).
+- **`DeliveryError` nennt Zeile und Konstrukt** (`Unsupported { line,
+  construct }`, `Unbalanced { line, delimiter }`) und wird über
+  `Error::Delivery` in den Kernfehler gehoben, damit der Aufrufer `?` schreiben
+  kann. Die Workbench zeigt ihn an; repariert wird nichts.
+- **Der Parser ist streng, nicht klug:** `#Titel` ohne Leerzeichen, Ebene 7,
+  `![…]`, `[…](…)`, `<…>`, Entities, `*kursiv*`, `` `code` ``, `---`, `>`,
+  eingerückte Blöcke und verschachtelte Listen sind Fehler. `[1]` ohne Ziel
+  bleibt Text; `****` allein ist eine Trennlinie, kein leeres Fett.
+
 ## Schritt 4 — die Spikes, Linux zuerst
 
 | Reihenfolge | Issue | Was belegt wird |
@@ -212,7 +237,7 @@ Eingabe-Desktop). Beides samt Messwerten in `PITFALLS.md`, Abschnitt „Windows"
 Der Spike-Code liegt unter `%TEMP%\opencode\dw-win-spike` und ist **nicht** im
 Repo.
 
-## Schritt 5 — hardwarefrei: #10 Konverter (#4 und #5 erledigt)
+## Schritt 5 — hardwarefrei: Domäne, DSP und Konverter stehen (#4, #5, #10)
 
 Alle drei (Domäne, DSP, Konverter) brauchen keine Hardware und kein Netz,
 laufen also auch auf Linux — und die Toolchain steht überall, wo sie gebraucht
@@ -220,17 +245,15 @@ wird (claw, elite und seit #20 **think als Kern-Bauplatz**). Sie laufen parallel
 zu den Spikes; die Reihenfolge der Spikes ändert sich dadurch nicht:
 #12 → #13 → #1.
 
-**Der nächste Bauabschnitt ist #10**, im selben Crate wie #4 und #5 (auf think,
-`export PATH="$HOME/.cargo/bin:$PATH"` vor jedem `cargo`-Aufruf). #4, #5 und
-#10 liegen alle in `crates/core`, also **sequenziell**, nicht parallel.
+**Der nächste Bauabschnitt ist #6** (STT-/LLM-Client), im selben Crate wie #4,
+#5 und #10 (auf think, `export PATH="$HOME/.cargo/bin:$PATH"` vor jedem
+`cargo`-Aufruf). Alles in `crates/core` liegt **sequenziell**, nicht parallel.
 
 - **#4** ist erledigt (Schritt 5a oben): `diktat` und `prompt` gemäß `DOMAIN.md`,
   das Arbeitsverzeichnis, die zehn Invarianten mit je einem Test.
 - **#5** ist erledigt (Schritt 5b oben): der DSP-Port, 73 portierte Tests.
-- **#10** ist die reine Funktion `deliver(markdown) -> Delivery { html, text }`:
-  constrained Markdown nach **semantischem Fragment** (nicht nach `CF_HTML` —
-  der Umschlag ist Sache des Windows-Schreibers) und nach reinem Text. Neun
-  Testfälle stehen im Issue; das Schreiben auf die Zwischenablage bleibt bei #8.
+- **#10** ist erledigt (Schritt 5c oben): `deliver(markdown) -> Delivery`, 22
+  Tests, kein `CF_HTML` im Kern.
 
 ## Schritt 6 — der Rest
 

@@ -60,10 +60,14 @@ die Domäne aus #4: die zwei Tabellen aus `DOMAIN.md`, das Arbeitsverzeichnis mi
 #5 steht daneben die hardwarefreie Audioseite: `crates/core/src/audio/` mit
 Hochpass, Stillemaß `Q`, Naht (Q-Gate, Pre-roll, Prompt-Carry-over, Echo-Trim)
 und Fragmentierung, 73 portierte Tests aus `polished-recognition` und
-`aitranscribe`. Produktcode entsteht **nur hardwarefrei** — Domäne (#4),
-DSP-Port (#5, erledigt) und Konverter (#10) —, solange die Spikes die
-Plattformbausteine nicht belegt haben; Reihenfolge: Provisioning (#19,
-erledigt), Linux-Spike (#12), macOS-Spike (#13), Windows-Spike (#1).
+`aitranscribe`. Seit #10 steht der Konverter: `deliver(markdown)` liefert das
+semantische HTML-Fragment und den reinen Text, geordnete Listen als Text mit
+ihren Ziffern, jedes andere Konstrukt als typisierter Fehler — der
+`CF_HTML`-Umschlag bleibt Sache des Windows-Schreibers. Produktcode entsteht
+**nur hardwarefrei** — Domäne (#4), DSP-Port (#5) und Konverter (#10, alle
+erledigt) —, solange die Spikes die Plattformbausteine nicht belegt haben;
+Reihenfolge: Provisioning (#19, erledigt), Linux-Spike (#12), macOS-Spike (#13),
+Windows-Spike (#1).
 Das Grill-Ergebnis steht als Kommentar an Epic #3 und ist in `CONTEXT.md`,
 `DOMAIN.md` und `DECISIONS.md` eingearbeitet; die Beschlusslage vom 2026-11-16
 (drei Ziele, kein Tastenhook, Fähigkeitsleiter) in `docs/ai/DECISIONS.md`, E1–E10.
@@ -105,10 +109,13 @@ cargo test
 Nur grün wird committet. Keine Ausnahmen.
 
 Seit #4 existiert das Crate: die drei Befehle laufen im Workspace-Wurzelverzeichnis
-und decken den Kern ab (seit #5: 88 Tests, davon 73 DSP). Ein Test zählt nur,
-wenn er die zugehörige Aussage wirklich bricht — der Nachweis steht in den
-Commits zu #4 (drei Invarianten einzeln entfernt, drei Tests rot) und zu #5
-(Suchfenster ignoriert ⇒ vier Tests rot; Q-Gate auf „immer" ⇒ drei Tests rot).
+und decken den Kern ab (seit #10: 110 Tests und ein Doctest — 15 Invarianten, 26
+DSP, 28 Naht, 19 Fragmentierung, 22 Lieferung). Ein Test zählt nur, wenn er die
+zugehörige Aussage wirklich bricht — der Nachweis steht in den Commits zu #4
+(drei Invarianten einzeln entfernt, drei Tests rot), zu #5 (Suchfenster ignoriert
+⇒ vier Tests rot; Q-Gate auf „immer" ⇒ drei Tests rot) und zu #10 (geordnete
+Liste als `<ol>` ⇒ zwei Tests rot; kursiv durchgereicht ⇒ einer; kein
+`&`-Escaping ⇒ einer).
 
 Die Konsistenzprüfung der Dokumente bleibt daneben bestehen: `CONTEXT.md` ist die
 Quelle der Begriffe, `DOMAIN.md` die Quelle der Invarianten, `DECISIONS.md` darf

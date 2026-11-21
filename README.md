@@ -80,9 +80,9 @@ auf jedem Ziel. Was eine Plattform kann, meldet ihre Schale beim Start als
 | [AGENTS.md](AGENTS.md) | Arbeitsregeln für dieses Repository |
 
 Der Einstieg für die nächste Sitzung ist
-[docs/ai/HANDOFF.md](docs/ai/HANDOFF.md): der Domänenkern (#4) steht, als
-Nächstes kommt der DSP-Port (#5) und der Konverter (#10); parallel laufen die
-Spikes — Linux (#12), macOS (#13), Windows (#1).
+[docs/ai/HANDOFF.md](docs/ai/HANDOFF.md): Domänenkern (#4), DSP-Port (#5) und
+Konverter (#10) stehen, als Nächstes kommt der STT-/LLM-Client (#6); parallel
+laufen die Spikes — Linux (#12), macOS (#13), Windows (#1).
 
 ## Verwandte Projekte
 

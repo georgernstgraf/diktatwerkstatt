@@ -1,5 +1,26 @@
 # Persistenz-Log
 
+## 2026-11-21 — Konverter: constrained Markdown → Fragment und Reintext (#10)
+
+* **Creation**: `crates/core/src/delivery.rs` mit `deliver(markdown) ->
+  Delivery { html, text }`, `Delivery`, `DeliveryError` und `Construct`, dazu
+  `Error::Delivery` (`From<DeliveryError>`), damit Aufrufer `?` schreiben.
+  `tests/lieferung.rs` (22 Tests): die neun Fälle aus #10 (Umlaute byte-gleich,
+  `h1`–`h6`, `ul`/`li`, `strong`, geordnete Liste als Text mit Ziffern,
+  typisierte Fehler, leere Nutzlast, kein abschließender Umbruch, kein
+  `CF_HTML`-Umschlag) und die Grenzen des Parsers.
+* **Entscheidung**: ein `\n` zwischen Blöcken (keine Leerzeile), jeder
+  Rubrum-Punkt ein eigener `<p>` mit seinem Marker, kein `<ol>` — siehe
+  [DECISIONS.md](DECISIONS.md) vom 2026-11-21.
+* **Verifikation**: `cargo fmt --check`, `cargo clippy --all-targets -- -D
+  warnings`, `cargo test` grün auf **think** (Rust 1.100.0): 110 Tests plus ein
+  Doctest, ohne Hardware und ohne Netz.
+* **Gegenprobe**: geordnete Liste als `<ol>` ⇒ zwei Lieferungstests rot;
+  kursiv durchgereicht ⇒ ein Test rot; kein `&`-Escaping ⇒ ein Test rot.
+* **Update**: [DOMAIN.md](DOMAIN.md) („Was `deliver` genau ausgibt"),
+  [STATE.md](STATE.md) (Artefakt, 110 Tests, nächster Schritt #6),
+  [HANDOFF.md](HANDOFF.md) (Schritt 5c), `index.md`, `AGENTS.md`.
+
 ## 2026-11-21 — DSP-Port: Stillemaß, Naht und Fragmentierung in Rust (#5)
 
 * **Creation**: `crates/core/src/audio/` mit `pcm.rs` (Hochpass 80 Hz mit
