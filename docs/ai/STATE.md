@@ -15,7 +15,11 @@ status: stable
 |---|---|
 | `Cargo.toml` | Workspace (Edition 2024, `resolver = "3"`, `rust-version` 1.89), Abhängigkeiten zentral: `rusqlite` 0.43 (`bundled`), `chrono`, `thiserror` |
 | `crates/core` | **Domäne aus #4**: `store.rs` (zwei `STRICT`-Tabellen, `user_version = 1`, WAL/`synchronous = FULL`), `fragments.rs` (Arbeitsverzeichnis `NNN.wav`/`NNN.txt`, `.tmp` + `rename`), `error.rs` (typisierte Fehler) |
+| `crates/core/src/audio/` | **DSP-Kern aus #5**: `pcm.rs` (Hochpass 80 Hz mit `i16`-Quantisierung, Rahmenpegel, Upload-Konditionierung, WAV), `silence.rs` (Q, Achse `0,65·M + 100`, Flächenzentroid, Zwangsschnitt), `seam.rs` (Q-Gate, Pre-roll, Prompt ≤ 96 Zeichen, Echo-Trim ≤ 8 Token, Überlappung), `fragmenter.rs` (Slice 21 s, Suchfenster 6,3 s, Spool, `NNN.wav`, Worker) |
 | `crates/core/tests/invarianten.rs` | 15 Tests: einer je Invariante, dazu die halb geschriebene `.txt`, die leere `.txt`, die 999-Grenze, die Wiederaufnahme, die Prompt-Bibliothek |
+| `crates/core/tests/audio.rs` | 26 Tests: die exakten Kotlin-Schnittwerte („bist"-Regression, Frikativ-Ausschluss, 25-Hz-Brummen, Flüsterregime, Verstärkungsinvarianz, Raumwechsel), Hochpass/Rahmenpegel, Upload-Konditionierung, WAV-Rundlauf |
+| `crates/core/tests/naht.rs` | 28 Tests: Prompt-Carry-over, Echo-Trim (inkl. Fehlgriff-Toleranz), Token-Überlappung, Policy-Grenzen (`Q == quality_min` bleibt kahl), Pre-roll/Upload |
+| `crates/core/tests/fragmentierung.rs` | 19 Tests: Slice/Suchfenster, Lückenlosigkeit aus den Dateien, genau N Dateien, Pause im Fenster, früher Dip unsichtbar, Rest ganz, Q-Gate und Policies, Flüsterregime, 999-Grenze sticky, Spool-Trim, Worker (Byte-Exaktheit, Schreibfehler) |
 | `README.md` | Beschreibung, Abgrenzung, Architekturbild, Lizenz — drei Ziele, ein Kern |
 | `CONTEXT.md` | Vokabular inkl. **Plattformschale**, **Fähigkeitsleiter**, **Diktierplatz**, bewusster Abgrenzungen und Zustandsübergängen |
 | `docs/ai/DOMAIN.md` | zwei Tabellen, zehn Invarianten, **Fähigkeitsleiter**, Abläufe, Arbeitsverzeichnis, Lieferformate je Plattform, Fehlerfälle |
@@ -32,7 +36,9 @@ status: stable
 ## Existiert nicht
 
 - Kein `apps/` — keine Plattformschale, keine Workbench, kein Tray, keine
-  Zwischenablage, kein Audio. Der Kern ist da, die Schalen fehlen.
+  Zwischenablage. **Kein Audio-Gerät**: die Aufnahme (cpal) gehört zur Schale;
+  die DSP-Seite dahinter steht seit #5 (`crates/core/src/audio/`). Der Kern ist
+  da, die Schalen fehlen.
 - Keine CI: die drei `cargo`-Befehle laufen von Hand, vor jedem Commit.
 - Keine Windows-VM auf think: qemu, libvirt, OVMF und swtpm sind installiert,
   es ist aber noch kein Gast definiert.
@@ -51,10 +57,12 @@ cargo clippy --all-targets -- -D warnings
 cargo test
 ```
 
-Grün heißt hier: die fünfzehn Tests in `crates/core/tests/invarianten.rs` laufen
-durch. Ein Test zählt nur, wenn er die Invariante bricht — am 2026-11-21 an drei
-Invarianten gegengeprüft (Append-Sperre, Lückenprüfung, Reihenfolge im
-Abschluss).
+Grün heißt hier: die 88 Tests laufen durch — 15 Invarianten, 26 DSP, 28 Naht,
+19 Fragmentierung —, ohne App, ohne Netz, ohne Audio-Hardware. Ein Test zählt
+nur, wenn er die Aussage bricht: am 2026-11-21 gegengeprüft an drei Invarianten
+(Append-Sperre, Lückenprüfung, Reihenfolge im Abschluss) und an zwei
+DSP-Eigenschaften (Suchfenster ignoriert ⇒ vier Fragmentierungstests rot;
+Q-Gate auf „immer" ⇒ drei Nahttests rot).
 
 Daneben bleibt die Dokumentenkonsistenz: `CONTEXT.md` ist die Quelle der Begriffe,
 `DOMAIN.md` die Quelle der Invarianten; wer einen Begriff ändert, ändert ihn
@@ -66,11 +74,12 @@ Wayland, einer mit `{ja, ja}` ist X11 oder Windows.
 
 ## Nächster Schritt
 
-**#5 DSP-Port** in dasselbe Crate — Fragmentierung, Naht, Q-Gate; der Prüfstein
-sind die Tests aus `polished-recognition/:core` und
-`aitranscribe/tests/test_fragmenter.py`, sie werden portiert, nicht neu erfunden.
-Danach **#10 Konverter** (`deliver(markdown) -> Delivery { html, text }`); #4, #5
-und #10 liegen alle in `crates/core`, laufen also nacheinander.
+**#10 Konverter** in dasselbe Crate — das Gegenstück zur Audioseite:
+`deliver(markdown) -> Delivery { html, text }` (semantisches Fragment plus
+reiner Text, neun Testfälle im Issue). Danach #6 STT/LLM-Client, der die
+Naht-Bausteine verdrahtet: `Committed::stitched` entscheidet über
+`upload`/`prompt`, danach `trim_echo`, und `condition` geht vor den Upload.
+#4, #5 und #10 liegen alle in `crates/core`, laufen also nacheinander.
 
 Parallel dazu die Spikes (`docs/ai/HANDOFF.md`, Schritt 4): **#12 Linux-Spike**,
 dessen X11-Teil gemessen ist (elite, 2026-11-21: `XGrabKey`,

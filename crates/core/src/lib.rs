@@ -4,13 +4,15 @@
 //! `enum Platform`, kein Netz, keine Zwischenablage, kein Fenster. Er ist mit
 //! `cargo test` prüfbar, ohne dass die App läuft und ohne Hardware.
 //!
-//! Zwei Bausteine teilen sich die Arbeit:
+//! Drei Bausteine teilen sich die Arbeit:
 //!
 //! - [`Store`] — die SQLite-Datei mit den zwei Tabellen `diktat` und `prompt`
 //!   (`docs/ai/DOMAIN.md`, „`diktat` — das Diktat" und „`prompt` — die
 //!   Bibliothek").
 //! - [`WorkingDir`] — das Verzeichnis eines offenen Diktats mit je Fragment
 //!   `NNN.wav` (offen) oder `NNN.txt` (erledigt).
+//! - [`evaluate`] — das Stillemaß `Q` und die Schnittentscheidung; [`condition`]
+//!   der Weg zum STT-Endpunkt, [`wav_bytes`] die Datei eines Fragments.
 //!
 //! # Die zehn Invarianten
 //!
@@ -36,10 +38,16 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+mod audio;
 mod error;
 mod fragments;
 mod store;
 
+pub use audio::{
+    Axis, Committed, Config, Cut, DEFAULT_SEARCH_PERCENT, ECHO_MAX_TOKENS, FRAME_MS, PRE_ROLL_MS,
+    PROMPT_MAX_CHARS, Preparer, QUALITY_MIN, SeamPolicy, Worker, condition, evaluate, frame_levels,
+    high_pass, overlap, pre_roll, prompt, stitched, trim_echo, upload, wav_bytes, wav_samples,
+};
 pub use error::{Error, Result};
 pub use fragments::{MAX_FRAGMENT, WorkingDir};
 pub use store::{Diktat, DiktatId, Prompt, PromptId, PromptKind, Resume, Store, View};

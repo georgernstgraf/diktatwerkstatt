@@ -88,6 +88,44 @@ audio/42/
   `raw_text` als fertiger Text — Invariante 3 hat ihn vorher geschrieben. Der
   Abschluss wird dann nur noch zu Ende geführt.
 
+## Audio: Slice, Stillemaß und Naht
+
+Der Kern schneidet die Aufnahme selbst. Die Plattformschale liefert **16 kHz
+mono `i16`** — die Umrechnung aus dem Geräteformat (48 kHz stereo `f32` unter
+Windows, PipeWire-ALSA unter Linux) ist ihre Sache und in `PITFALLS.md`
+gemessen. Danach gilt (Port aus `polished-recognition`, Prüfstein sind dessen
+Tests und die von `aitranscribe`):
+
+| Begriff | Bedeutung |
+|---|---|
+| **Slice** | Die **Obergrenze** eines Fragments, Default 21 s. Ein Fragment ist zwischen 14,7 s und 21 s lang. |
+| **Suchfenster** | Die letzten 30 % der Slice (Default 6,3 s). Nur dort darf der Schnitt liegen; entschieden wird, sobald die ganze Slice da ist. |
+| **Flächenzentroid** | Der energiegewichtete Schwerpunkt eines Stillekandidaten. Er kann per Konstruktion nicht am Rand eines lauten Laufs liegen. |
+| **Q** | Die Mangel-Fläche des besten Kandidaten unter der Achse `X = 0,65·M + 100` (M = Mittelpegel des Fensters), in 10-ms-Rahmen. Dimensionslos, verstärkungsinvariant; `c = 100` ist der einzige absolute Anker. |
+| **Zwangsschnitt** | Kein Rahmen unter der Achse (Dauersprache, Flüsterraum) ⇒ der leiseste 10-ms-Rahmen, `Q = 0`. |
+| **Q-Gate** | `Q < quality_min` (Default 10) oder `Q` ungemessen ⇒ die Naht wird konditioniert. |
+| **Naht** | Die Grenze zweier Fragmente. Konditioniert wird mit Pre-roll (letzte 1 s des Vorfragments), Prompt-Carry-over (≤ 96 Zeichen, wortgrenzenbewusst) und Echo-Trim (≤ 8 Token). Alle drei oder keine. |
+
+Zusagen der Audioseite:
+
+- **Ein Fragment = genau eine Datei `NNN.wav`.** Keine Seitendatei, kein
+  Pre-roll-File: der Pre-roll ist der letzte Teil des Vorfragments und wird im
+  Speicher an den Aufrufer gegeben. Nach N Fragmenten hält das Arbeitsverzeichnis
+  genau N Dateien.
+- **Lückenlos und byte-gleich.** Fragment N+1 beginnt bei `end_sample` von N;
+  die Verkettung der WAV-Nutzlasten ergibt die Aufnahme ohne ein fehlendes
+  Sample.
+- **Der Rest am Ende** ist ein letztes, **ungesuchtes** Fragment: ganz genommen,
+  `Q` ungemessen. Ihm folgt keine Naht.
+- **Der Schnitt ist best-effort, die Naht ist die Garantie.** Deshalb hängt die
+  Konditionierung an `Q` und nicht daran, ob der Schnitt „still“ aussah.
+- **Die Analyse braucht keine Hardware.** Ein Test ist ein `&[i16]`-Slice; die
+  exakten Kotlin-Schnittwerte sind der Prüfstein des Ports.
+- **Ab 1000 Fragmenten** bricht die Transkription mit einem typisierten Fehler
+  ab (999 ≈ 5,8 h bei 21 s), statt falsch zu sortieren. Der Fehler ist
+  „sticky": jeder weitere Aufruf liefert ihn erneut, damit kein committetes
+  Fragment verloren geht.
+
 ## Die zehn Invarianten
 
 1. **`audio_dir` gesetzt ⇔ Transkription nicht abgeschlossen.** Es gibt kein
@@ -176,7 +214,9 @@ Vier Regeln folgen daraus für jede X11-Schale:
 1. Diktier-Hotkey „diktieren roh" → Aufnahme beginnt; ein `diktat` entsteht mit
    `audio_dir`, `raw_text` ist leer. Der Hotkey ist ein **Umschalter**: der
    erste Druck startet, der zweite beendet.
-2. Alle ~21 s wird ein Fragment geschnitten und als `NNN.wav` abgelegt.
+2. Sobald die Slice vollständig aufgenommen ist, wird in ihren letzten 30 %
+   geschnitten (Flächenzentroid des besten Stillekandidaten, sonst leiseste
+   Rahmenmitte) und das Fragment als `NNN.wav` abgelegt.
 3. Das Fragment wird an den STT-Dienst geschickt, mit exponentiellem Backoff
    bis es angenommen ist. Das Transkript erscheint sofort im Reiter „rohes
    Transkript".

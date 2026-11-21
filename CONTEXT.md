@@ -24,7 +24,7 @@ trägt ihn hier ein.
 | **Poliertes Transkript** | Das Ergebnis des letzten **Prompt anwenden** über das ganze rohe Transkript. Genau ein Slot pro Diktat, keine Historie. |
 | **Polieren** | Die Tätigkeit: einen Prompt auf das rohe Transkript anwenden. |
 | **Append** | Weiteren Rohtext an ein Diktat hängen. Betrifft das rohe Transkript, nie Audio. Nur möglich, wenn dessen Transkription abgeschlossen ist. |
-| **Fragment** | Ein während der Aufnahme geschnittenes Audiostück (~21 s). Kleinste Einheit der Audioseite. |
+| **Fragment** | Ein während der Aufnahme geschnittenes Audiostück (14,7–21 s). Kleinste Einheit der Audioseite. |
 | **Arbeitsverzeichnis** | Das Verzeichnis eines Diktats, solange dessen Transkription läuft. Es hält je Fragment entweder `NNN.wav` (noch nicht transkribiert) oder `NNN.txt` (transkribiert). Die Mischung ist der Zustand. |
 | **Prompt** | Eine Anweisung an das LLM — **nie** der Text. Jeder Prompt hat einen Alias und ist entweder System-Prompt (Rolle, Ausgabeformat) oder User-Prompt (die eigentliche Aufgabe). |
 | **Auswahl** | Das Paar aus gewähltem System- und gewähltem User-Prompt, mit dem der nächste Aufruf arbeitet. |
@@ -50,9 +50,12 @@ die Audioseite, nicht die Textseite:
 | Begriff | Bedeutung |
 |---|---|
 | **Naht** | Die Grenze zwischen zwei Fragmenten. Zentralbegriff des Verfahrens. |
+| **Slice** | Die **Obergrenze** eines Fragments (Default 21 s). Sie bestimmt, wann entschieden wird: erst wenn sie vollständig aufgenommen ist. |
+| **Suchfenster** | Die letzten 30 % der Slice (Default 6,3 s) — der einzige Bereich, in dem ein Schnitt liegen darf. |
 | **Q** | Tiefe × Dauer eines Stillekandidaten unter der adaptiven Achse `X = 0,65·M + 100`. Dimensionslos, verstärkungsinvariant. |
-| **Q-Gate** | Bedingung `Q < quality_min`; trifft sie zu, wird die Naht konditioniert. |
-| **Pre-roll / Prompt-Carry-over / Echo-Trim** | Die drei Reparaturen an einer konditionierten Naht. |
+| **Q-Gate** | Bedingung `Q < quality_min`; trifft sie zu, wird die Naht konditioniert. Ungemessenes `Q` konditioniert ebenfalls. |
+| **Zwangsschnitt** | Kein Rahmen unter der Achse ⇒ Schnitt am leisesten 10-ms-Rahmen, `Q = 0`, und die Naht wird konditioniert. |
+| **Pre-roll / Prompt-Carry-over / Echo-Trim** | Die drei Reparaturen an einer konditionierten Naht: die letzte Sekunde des Vorfragments — **im Speicher, nie eine Datei** —, sein Textende als Prompt (≤ 96 Zeichen), das Entfernen des wiederholten Kopfs (≤ 8 Token). |
 | **Session-Bundle** | `session.json` plus `uploads/` als vollständige Evidenz einer Sitzung. |
 
 ## Bewusste Abgrenzungen

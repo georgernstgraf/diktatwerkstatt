@@ -64,6 +64,10 @@ pub enum Error {
         number: u32,
     },
 
+    /// Die WAV-Datei ist kein 16-Bit-Mono-PCM.
+    #[error("WAV: {0}")]
+    Wav(&'static str),
+
     /// Die Datenbank stammt aus einer neueren Version der App.
     #[error("Schemaversion {found} der Datenbank ist neuer als die unterstützte {supported}")]
     SchemaTooNew {

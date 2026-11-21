@@ -1,5 +1,32 @@
 # Persistenz-Log
 
+## 2026-11-21 — DSP-Port: Stillemaß, Naht und Fragmentierung in Rust (#5)
+
+* **Creation**: `crates/core/src/audio/` mit `pcm.rs` (Hochpass 80 Hz mit
+  `i16`-Quantisierung, Rahmenpegel, Upload-Konditionierung, WAV-Schreiber und
+  -Leser), `silence.rs` (Q über der Achse `0,65·M + 100`, Flächenzentroid,
+  Randklemmung, Zwangsschnitt am leisesten Rahmen), `seam.rs` (Q-Gate,
+  Pre-roll, Prompt-Carry-over ≤ 96 Zeichen, Echo-Trim ≤ 8 Token,
+  Token-Überlappung) und `fragmenter.rs` (Slice 21 s, Suchfenster 6,3 s,
+  Spool, genau eine `NNN.wav` je Fragment, Worker über `mpsc`).
+  Drei neue Testdateien: `tests/audio.rs` (26), `tests/naht.rs` (28),
+  `tests/fragmentierung.rs` (19); zusammen 88 Tests mit den Invarianten.
+* **Entscheidung**: Slice-Modell statt Vorwärtsfenster, Pre-roll im Speicher
+  statt als Seitendatei, Q-Gate als Produktionsdefault, PCM als `&[i16]` —
+  siehe [DECISIONS.md](DECISIONS.md) vom 2026-11-21.
+* **Verifikation**: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`
+  und `cargo test` grün auf **think** (Rust 1.100.0), ohne Hardware und ohne
+  Netz. Die exakten Schnittwerte der Kotlin-Referenz (7280, 5680, 7280, 400,
+  80, 240, 9200 Samples) sind reproduziert.
+* **Gegenprobe**: Suchfenster ignoriert ⇒ vier Fragmentierungstests rot;
+  Q-Gate auf „immer" ⇒ drei Nahttests rot. Die Tests hängen an der Aussage,
+  nicht an der Implementierung.
+* **Update**: [DOMAIN.md](DOMAIN.md) (neuer Abschnitt „Audio: Slice, Stillemaß
+  und Naht", Ablauf roh), [STATE.md](STATE.md) (Artefakte, 88 Tests, nächster
+  Schritt #10), [HANDOFF.md](HANDOFF.md) (Schritt 5b, offener Zwischenraum an
+  der Naht für #6), `CONTEXT.md` (Slice, Suchfenster, Pre-roll im Speicher),
+  `index.md`, `AGENTS.md`.
+
 ## 2026-11-21 — Domänenkern gebaut: zwei Tabellen, Arbeitsverzeichnis, FIFO, zehn Invarianten (#4)
 
 * **Creation**: `Cargo.toml` (Workspace, Edition 2024, `rust-version` 1.89 wegen

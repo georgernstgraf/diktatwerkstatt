@@ -11,6 +11,40 @@ status: stable
 
 Neueste oben. Jeder Eintrag nennt Entscheidung, Grund und verworfene Alternative.
 
+## 2026-11-21 — Fragmentierung: Slice-Modell, Q-Gate, Naht ohne Seitendatei
+
+**Entscheidung:** Der Kern schneidet nach dem **Slice-Modell** von
+`polished-recognition`: Die Slice (Default 21 s) ist die **Obergrenze** eines
+Fragments, geschnitten wird nur in den letzten 30 % (Suchfenster, 6,3 s), und
+entschieden wird erst, wenn die ganze Slice aufgenommen ist. Der Schnitt liegt
+im **Flächenzentroid** des besten Stillekandidaten `Q` (Achse `X = 0,65·M + 100`,
+Rand 150 ms geklemmt); ohne Kandidaten am leisesten 10-ms-Rahmen (`Q = 0`). Die
+Naht wird nach dem **Q-Gate** konditioniert (`Q < 10` oder ungemessen), und die
+drei Reparaturen — Pre-roll (1 s), Prompt-Carry-over (≤ 96 Zeichen,
+wortgrenzenbewusst), Echo-Trim (≤ 8 Token) — liegen im Kern. Der Pre-roll ist
+**keine Datei**, sondern der letzte Teil des Vorfragments im Speicher; ein
+Fragment ist genau eine `NNN.wav`, lückenlos dreistellig, ab 1000 bricht die
+Transkription ab.
+**Grund:** Die Obergrenze folgt der Messung (20–30 s ist das stabile
+Whisper-Fenster: 30 s → 4,76 % WER, 45 s → 34,59 %, 60 s → 51,47 %). Die
+Untergrenze 14,7 s schadet nicht, weil ein Fragment nur dann kürzer als 21 s
+ist, wenn im Suchfenster wirklich eine Pause liegt. Das Q-Gate ist die Lehre
+aus dem Unfall „bist. bist.", bei dem ein stilleausgerichteter Schnitt mitten
+im Wort lag: Der Schnitt bleibt best-effort, die Naht ist die Garantie — und
+beide hängen an derselben Entscheidung (`Committed::stitched`). Der Pre-roll im
+Speicher hält das Arbeitsverzeichnis ehrlich („eine Datei je Fragment") und ist
+ohnehin vorhanden: er ist der letzte Teil des Vorfragments, das der STT-Client
+zum Transkribieren liest.
+**Verworfen:** das Vorwärtsfenster aus `aitranscribe` (Fragment mindestens
+Fragmenttakt, bis +5 s ⇒ Obergrenze 26 s und mehr, zu nah an der Klippe);
+Pre-roll als `preroll_NNN.wav` (verdoppelt die Dateien, bricht „nur `.wav` heißt
+offen" und wäre nach dem Löschen des Vorfragment-Audios ohnehin verloren);
+Konditionieren nur bei erzwungenen Schnitten (`FORCED_ONLY`; der Unfall beweist,
+dass ein stilleausgerichteter Schnitt genauso schief liegen kann); PCM im Kern
+als Little-Endian-Bytes (Byte-Offsets sind eine Frage der WAV-Datei, die Analyse
+rechnet auf `i16`); eine Filterbibliothek (der Einpoler ist vier Zeilen, und die
+Quantisierung auf `i16` ist Teil der Rechnung, nicht ein Detail).
+
 ## 2026-11-21 — Der Abschluss ist im Code zweistufig, das Schema ist versioniert
 
 **Entscheidung:** `Store::finish_transcription` ist der Weg, den die App geht;

@@ -11,7 +11,7 @@ status: stable
 
 Arbeitsverzeichnis: `~/repos/georgernstgraf/diktatwerkstatt`
 Repository: https://github.com/georgernstgraf/diktatwerkstatt
-Stand: **der Kern steht (#4), die Schalen fehlen.** Branch `main`. Beschlossen
+Stand: **der Kern steht (#4, #5), die Schalen fehlen.** Branch `main`. Beschlossen
 sind **drei Ziele** (Windows, Linux, macOS) mit einem geteilten Kern und drei
 dünnen Plattformschalen, **kein globaler Tastenhook** und **keine Plattformweiche
 im Kern** — die Beschlusslage steht als E1–E10 in `DECISIONS.md`. Gebaut wird
@@ -82,6 +82,39 @@ Drei Entscheidungen, die man kennen muss, bevor man weiterbaut:
 
 Gegengeprüft: Append-Sperre, Lückenprüfung der Verkettung und die Reihenfolge im
 Abschluss einzeln entfernt ⇒ genau der jeweilige Test wird rot.
+
+## ✅ Erledigt — Schritt 5b: #5 DSP-Port (2026-11-21, auf think)
+
+`crates/core/src/audio/` steht: `pcm.rs` (Hochpass 80 Hz **mit**
+`i16`-Quantisierung, Rahmenpegel, Upload-Konditionierung, WAV), `silence.rs`
+(Q, Achse, Flächenzentroid, Zwangsschnitt), `seam.rs` (Q-Gate, Pre-roll,
+Prompt ≤ 96 Zeichen, Echo-Trim ≤ 8 Token, Token-Überlappung) und
+`fragmenter.rs` (Slice, Suchfenster, Spool, `NNN.wav`, Worker). 73 neue Tests
+(26 `audio`, 28 `naht`, 19 `fragmentierung`), zusammen 88 mit den Invarianten.
+
+| Was | Ergebnis |
+|---|---|
+| Exakte Kotlin-Schnittwerte | **alle reproduziert**: 7280, 5680, 7280, 400, 80, 240, 9200 Samples — inklusive der „bist"-Regression, des Frikativ-Ausschlusses und der 25-Hz-Brumm-Gegenprobe |
+| Byte-exakte Rekonstruktion | Test verkettet die WAV-Nutzlasten der Dateien und vergleicht mit der Aufnahme |
+| Genau eine Datei je Fragment | nach N Fragmenten genau `001.wav` … `00N.wav`, keine `.tmp`-, keine Pre-roll-Datei |
+| Q-Gate-Grenze | `Q == quality_min` bleibt **kahl** (strikt `<`), ungemessen und `Q = 0` konditionieren |
+| 999-Grenze | 999 Fragmente geschrieben, dann `FragmentNumber { 1000 }`, der Fehler ist sticky |
+| Gegenprobe | Suchfenster ignoriert ⇒ 4 Fragmentierungstests rot; Q-Gate auf „immer" ⇒ 3 Nahttests rot |
+
+Drei Dinge, die #6 wissen muss:
+
+- **Der Pre-roll ist keine Datei.** `Committed` trägt `stitched`, `quality`,
+  `forced` und den `Cut` als Evidenz; den Pre-roll bildet der Client mit
+  `upload(previous, fragment, stitched, 16_000)` aus dem Vorfragment, das er
+  ohnehin liest. Danach `prompt(previous_text, 96)`, nach der Antwort
+  `trim_echo(text, previous_text, 8)` — **nur** wenn die Naht konditioniert war.
+- **`Preparer::new` legt das Arbeitsverzeichnis nicht an**; `WorkingDir::create`
+  ist Sache des Aufrufers. `search_ms < slice_ms` ist nur eine
+  Debug-Assertion.
+- **Der Zwischenraum an einer Naht ist offen.** `WorkingDir::assemble` verkettet
+  die `.txt` byte-gleich ohne Trenner (Invariante 10), die Dateien enden
+  absichtlich ohne Umbruch. Wer den Rohtext aus Fragmenten baut, muss den
+  Trenner an der Naht setzen — heute tut das niemand; gehört zu #6/#7.
 
 ## Schritt 4 — die Spikes, Linux zuerst
 
@@ -179,22 +212,21 @@ Eingabe-Desktop). Beides samt Messwerten in `PITFALLS.md`, Abschnitt „Windows"
 Der Spike-Code liegt unter `%TEMP%\opencode\dw-win-spike` und ist **nicht** im
 Repo.
 
-## Schritt 5 — hardwarefrei: #5 DSP-Port, #10 Konverter (#4 erledigt)
+## Schritt 5 — hardwarefrei: #10 Konverter (#4 und #5 erledigt)
 
-Alle drei brauchen keine Hardware und kein Netz, laufen also auch auf Linux —
-und die Toolchain steht überall, wo sie gebraucht wird (claw, elite und seit
-#20 **think als Kern-Bauplatz**). Sie laufen parallel zu den Spikes; die
-Reihenfolge der Spikes ändert sich dadurch nicht: #12 → #13 → #1.
+Alle drei (Domäne, DSP, Konverter) brauchen keine Hardware und kein Netz,
+laufen also auch auf Linux — und die Toolchain steht überall, wo sie gebraucht
+wird (claw, elite und seit #20 **think als Kern-Bauplatz**). Sie laufen parallel
+zu den Spikes; die Reihenfolge der Spikes ändert sich dadurch nicht:
+#12 → #13 → #1.
 
-**Der nächste Bauabschnitt ist #5**, im selben Crate wie #4 (auf think,
-`export PATH="$HOME/.cargo/bin:$PATH"` vor jedem `cargo`-Aufruf). #4, #5 und #10
-liegen alle in `crates/core`, also **sequenziell**, nicht parallel.
+**Der nächste Bauabschnitt ist #10**, im selben Crate wie #4 und #5 (auf think,
+`export PATH="$HOME/.cargo/bin:$PATH"` vor jedem `cargo`-Aufruf). #4, #5 und
+#10 liegen alle in `crates/core`, also **sequenziell**, nicht parallel.
 
 - **#4** ist erledigt (Schritt 5a oben): `diktat` und `prompt` gemäß `DOMAIN.md`,
   das Arbeitsverzeichnis, die zehn Invarianten mit je einem Test.
-- **#5** hat einen fertigen Prüfstein: die Tests aus
-  `polished-recognition/:core` und `aitranscribe/tests/test_fragmenter.py`. Sie
-  werden portiert, nicht neu erfunden.
+- **#5** ist erledigt (Schritt 5b oben): der DSP-Port, 73 portierte Tests.
 - **#10** ist die reine Funktion `deliver(markdown) -> Delivery { html, text }`:
   constrained Markdown nach **semantischem Fragment** (nicht nach `CF_HTML` —
   der Umschlag ist Sache des Windows-Schreibers) und nach reinem Text. Neun
