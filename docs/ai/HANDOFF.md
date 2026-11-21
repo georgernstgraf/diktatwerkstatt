@@ -3,7 +3,7 @@ type: Handoff
 title: Übergabe
 description: Was die nächste Sitzung zuerst tut, in welcher Reihenfolge, und was schon bekannt ist.
 tags: [wissensbasis, handoff]
-generated: { by: opencode/general, at: 2026-11-20T18:20:00Z }
+generated: { by: opencode/general, at: 2026-11-21T03:01:43Z }
 status: stable
 ---
 
@@ -74,9 +74,11 @@ aber #1 verlangt „30 s ohne Aussetzer" und „Gerätewechsel überlebt". Ein
 emuliertes HDA-Gerät kann den Defekt **maskieren** oder einen erfinden. Für den
 Audiobaustein entweder USB-Audio per Passthrough oder ein echtes Windows.
 
-**Neues Abnahmekriterium** (aus der Grill-Recherche): Word 365 mit Build ≥ 2405,
-Einfügen aus einem anderen Programm, Standard „Merge Formatting" — bleiben
-`h1`–`h6` echte Überschriften-Formatvorlagen oder werden sie zu Fließtext?
+**Abnahmekriterium beantwortet** (2026-11-21, Word 365 Build 20625): `h1`–`h6`
+bleiben echte Formatvorlagen „Heading 1"–„Heading 6", die Liste bleibt eine echte
+Aufzählung, fett/kursiv bleiben zeichengenau; nur Fließtext wird „Normal (Web)".
+Die Sorge aus der Grill-Recherche war unbegründet — Belege in `PITFALLS.md`,
+Abschnitt „Windows".
 
 Erkenntnisse danach nach `docs/ai/PITFALLS.md`.
 
@@ -101,6 +103,27 @@ Wegwerfcode liegt unter `/tmp/dw-linux-spike/` auf think, nichts davon im Repo:
 
 Menschfrei noch messbar: Frage 4 (Zwischenablage-HTML), Frage 6 (Audio 30 s),
 Teile von Frage 5 (Tray/Autostart) und die Negativproben aus Frage 7.
+
+## 🟡 In Arbeit — #1 Windows-Spike (2026-11-21, auf dem Windows-Laptop)
+
+Wegwerf-Crate (`windows` 0.62.2, Rust 1.100.0), Word 365 Build 20625; alles außer
+Audio ist gemessen:
+
+| Baustein | Stand |
+|---|---|
+| Zwischenablage | **grün** — `CF_HTML` mit Byte-Offsets, Umlaute, Marker; in Word echte Überschriften und echte Aufzählung |
+| Hotkeys (ohne Hook) | **grün** — `RegisterHotKey`, 3 registriert, 3 ausgelöst; `Ctrl+Alt+F11/F12` sind fremdbelegt (1409) |
+| Tray | **grün** — `NIM_ADD`/`GetRect`/`NIM_MODIFY`/`NIM_DELETE` |
+| Textinjektion | **grün** — `SendInput` + `KEYEVENTF_UNICODE`, Emoji als Surrogatpaar, zeichengleich |
+| Audio | **offen** — `cpal` 30 s und Gerätewechsel brauchen die VM auf think oder ein Mikrofon im Zugriff |
+| Win+V-Ausschluss | **offen** — History ist aus; Marker liegen an, Wirkung ungeprüft |
+
+Zwei Befunde betreffen die Architektur: die **Zwischenablage ist
+sitzungsgetrennt** (Session 0 kann nicht in die Nutzersitzung schreiben), und
+**ohne entsperrten Desktop injiziert `SendInput` nichts** (Winlogon hält dann den
+Eingabe-Desktop). Beides samt Messwerten in `PITFALLS.md`, Abschnitt „Windows".
+Der Spike-Code liegt unter `%TEMP%\opencode\dw-win-spike` und ist **nicht** im
+Repo.
 
 ## Schritt 5 — hardwarefrei, aber erst nach dem Provisioning: #4 Domäne, #5 DSP-Port, #10 Konverter
 
@@ -194,3 +217,8 @@ Recherchen, zwei Vorgängerprojekten und dem Provisioning-Befund von claw.
 - Auf **claw** ist die Toolchain eingerichtet (#19, 2026-11-20: Rust 1.100.0 mit
   `clippy`/`rustfmt`, Tauri-Abhängigkeiten, `appimagetool`). **think** und **elite**
   haben kein `cargo`; **dell** bleibt der Desktop-Prüfstand.
+- Der **Windows-Laptop** hat Rust 1.100.0 und MSVC 14.44 und ist damit für die
+  Windows-Arbeit tauglich. Achtung: der Agent läuft dort in **Session 0** — jede
+  Messung, die Zwischenablage, Hotkeys, Tray oder Injektion betrifft, muss in die
+  Nutzersitzung gestartet werden (Dienst oder SYSTEM-Task mit
+  `SeTcbPrivilege`), sonst misst sie nichts.

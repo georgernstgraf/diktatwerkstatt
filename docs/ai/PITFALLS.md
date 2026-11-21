@@ -3,7 +3,7 @@ type: Reference
 title: Fallstricke
 description: Hart erarbeitete Fallen aus Audio, STT, Textübergabe, Bedienung und den drei Plattformen — nicht neu entdecken.
 tags: [referenz, fallstricke]
-generated: { by: opencode/general, at: 2026-11-20T16:23:16Z }
+generated: { by: opencode/general, at: 2026-11-21T03:01:43Z }
 status: stable
 sources:
   - id: whisper-silence
@@ -78,7 +78,15 @@ in [DOMAIN.md](DOMAIN.md).
 - **„Merge Formatting" ist seit Word-Build 2405 der Default** für Einfügen aus
   anderen Programmen. Microsofts Beschreibung dessen, was erhalten bleibt, nennt
   Fett, Unterstreichung, Listen und Tabellen — **Überschriften nicht**.[^word-merge]
-  Ob `h1`–`h6` verflachen, ist ungemessen und ein Abnahmekriterium von #1.
+  **Gemessen am 2026-11-21 (Word 365, Build 20625) ist das für `CF_HTML` falsch:**
+  `<h1>`/`<h2>` kommen als echte Formatvorlagen „Heading 1"/„Heading 2" an, `<ul>`
+  als echte Aufzählung (`listType=4`), `strong`/`em` zeichengenau; nur Fließtext
+  landet in „Normal (Web)". Die Einstellung `PasteFormattingOtherApp` (0/1/2) hat
+  daran nichts geändert — weder bei HTML noch bei reinem Text. Ob sie nur in der
+  Oberfläche wirkt, ist offen.
+- **Bei reinem Text übernimmt Word die Absatzvorlage an der Einfügestelle auf
+  alle eingefügten Absätze**, nicht nur auf den ersten (gemessen 2026-11-21: drei
+  Absätze in einem „Block Text"-Absatz, alle drei wurden „Block Text").
 - **AutoCorrect greift beim Einfügen nicht.** Gerade Anführungszeichen und `--`
   bleiben stehen; das gilt auch für COM-Einfügung.
 - **Markdown ist gegen juristischen Text nicht neutral.**[^commonmark]
@@ -129,6 +137,41 @@ in [DOMAIN.md](DOMAIN.md).
   `RegisterHotKey` funktioniert weiter. Siehe [INTEGRATION.md](INTEGRATION.md).
   **Entfällt mit der Hook-Entscheidung (2026-11-20)** — genau deshalb sind die
   drei globalen Hotkeys der Weg und nicht ein Hook.
+
+## Windows
+
+Gemessen am 2026-11-21 auf Windows 11 Pro (10.0.26200), Word 365 Build 20625 und
+einem Wegwerf-Crate (`windows` 0.62.2, Rust 1.100.0).
+
+- **Die Zwischenablage ist sitzungsgetrennt.** Ein Prozess in Session 0 (Dienste)
+  schreibt in eine andere Zwischenablage als die Nutzersitzung: nach einem
+  Schreibversuch aus Session 0 las Session 1 weiterhin den alten Text. Der Kern
+  samt Tray muss deshalb **in der Nutzersitzung** laufen — aus einem Dienst heraus
+  ist auch der Win+V-Ausschluss wirkungslos, weil der Text dort nie ankommt.
+- **Ohne entsperrten Desktop gibt es keine Eingabe.** In Session 0 und in einer
+  gesperrten Sitzung liefern `OpenInputDesktop` „Access denied",
+  `GetForegroundWindow` 0 und `SendInput` 0 von n Events (der Eingabe-Desktop
+  gehört dann Winlogon). Entsperrt funktioniert derselbe Aufruf: 64 Events für
+  31 Zeichen, Unicode samt Emoji (Surrogatpaar `U+D83C U+DFA4`) kommt zeichengleich
+  an. Für jede Automatisierung heißt das: sie muss in die entsperrte
+  Nutzersitzung starten, sonst misst sie nichts.
+- **`RegisterHotKey` ist der Hook-Ersatz und wirkt global ohne eigenes Fenster**:
+  drei Bindungen registriert, drei ausgelöst, `gesendet=3 empfangen=3`. Aber
+  **Kombinationen können fremdbelegt sein** — `Ctrl+Alt+F11` und `Ctrl+Alt+F12`
+  antworten `ERROR_HOTKEY_ALREADY_REGISTERED` (1409); auf diesem Host hält
+  `igfxEMN.exe` (Intel Graphics Event Monitor) sie. Die Schale muss den Fehlschlag
+  behandeln und eine Ausweichkombination anbieten, sonst startet sie stumm ohne
+  Hotkey.
+- **Die Ausschlussmarker bleiben nach `SetClipboardData` als Formate stehen**
+  (`CanIncludeInClipboardHistory`, `CanUploadToCloudClipboard`,
+  `ExcludeClipboardContentFromMonitorProcessing`, je DWORD 0). Windows entfernt
+  sie nicht selbst. Ob Win+V sie beachtet, ist **nicht** gemessen: die History war
+  aus (`EnableClipboardHistory` nicht gesetzt, kein `…\Windows\Clipboard`-Ordner).
+- **`Shell_NotifyIcon` trägt auch bei gesperrter und getrennter Sitzung**, solange
+  `explorer.exe` läuft: `NIM_ADD` → 1, `Shell_NotifyIconGetRect` liefert ein
+  Rechteck im Infobereich, `NIM_MODIFY` wechselt das Icon, `NIM_DELETE` → 1 und
+  danach kein Rechteck mehr. `GetRect` ist der programmatische Beweis, dass das
+  Symbol wirklich im Infobereich liegt — ein Screenshot wäre keiner.
 
 ## Linux und Wayland
 

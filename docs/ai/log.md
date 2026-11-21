@@ -1,5 +1,28 @@
 # Persistenz-Log
 
+## 2026-11-21 — Windows-Spike: Word, Hotkeys, Tray, Sitzungsgrenzen gemessen (#1)
+
+* **Messung**: Wegwerf-Crate auf dem Windows-11-Laptop (`windows` 0.62.2),
+  Word 365 Build 20625. Zwischenablage (`CF_HTML` mit Byte-Offsets, Umlaute,
+  drei Marker) **grün**; Word macht aus `<h1>`/`<h2>` echte Formatvorlagen
+  „Heading 1/2" und aus `<ul>` eine echte Aufzählung — die Grill-Sorge war
+  unbegründet. `RegisterHotKey` global ohne Fenster: 3 von 3 ausgelöst
+  (`gesendet=3 empfangen=3`), `Ctrl+Alt+F11/F12` fremdbelegt (1409). Tray über
+  `Shell_NotifyIcon` inkl. `GetRect`-Beweis grün. `SendInput` mit
+  `KEYEVENTF_UNICODE` tippt 32 Zeichen samt `äöüß` und Emoji zeichengleich.
+  Zwischenablage-History war aus: Win+V-Ausschluss **nicht** gemessen.
+* **Umgebungsbefunde**: die Zwischenablage ist **sitzungsgetrennt** (Session 0
+  schreibt nicht in die Nutzersitzung); ohne **entsperrten** Desktop injiziert
+  `SendInput` nichts (Winlogon hält den Eingabe-Desktop). Beides erklärt, warum
+  die ersten Läufe 0 Events lieferten.
+* **Update**: [PITFALLS.md](PITFALLS.md) — neuer Abschnitt **Windows**; die
+  Aussage „Überschriften verflachen unter Merge Formatting" ist widerlegt und
+  ersetzt. [HANDOFF.md](HANDOFF.md) — Abnahmekriterium beantwortet, #1-Stand als
+  Tabelle, Umgebung um den Windows-Laptop und die Session-0-Regel ergänzt.
+  [index.md](index.md) — Beschreibung nachgezogen.
+* **Offen**: Audio (`cpal` 30 s, Gerätewechsel) und der Win+V-Ausschluss; beides
+  braucht die VM auf think oder eine eingeschaltete History. #1 bleibt offen.
+
 ## 2026-11-20 — Provisioning auf claw erledigt (#19)
 
 * **Erledigt**: claw ist provisioniert und verifiziert — rustc/cargo **1.100.0**,
