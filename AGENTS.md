@@ -114,8 +114,12 @@ Non-Login-Shell startet.
 
 **elite hat seit 2026-11-21 ebenfalls cargo 1.100.0 mit `clippy`/`rustfmt`**
 (#12, Spike-Prüfstand X11) — ohne `libwebkit2gtk-4.1-dev`/`libgtk-3-dev`, taugt
-also für Kern und Spikes, nicht für Tauri-Schalen. **think** hat kein `cargo`;
-dort gilt die Dokumentenprüfung, bis es provisioniert ist.
+also für Kern und Spikes, nicht für Tauri-Schalen.
+
+**think ist seit 2026-11-21 der Kern-Bauplatz** (#20): cargo 1.100.0 mit
+`clippy`/`rustfmt` und `libasound2-dev`, 4 Kerne und 30 GB RAM. Auch dort fehlen
+die Tauri-`-dev`-Pakete: Schalen und AppImage baut **claw**, den Kern baut und
+testet **think**.
 
 ## Commits und Issues
 

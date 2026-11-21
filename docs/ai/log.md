@@ -1,5 +1,23 @@
 # Persistenz-Log
 
+## 2026-11-21 — think ist der Kern-Bauplatz: Rust 1.100.0 provisioniert (#20)
+
+* **Messung**: rustup mit `--default-toolchain 1.100.0 --profile default` (enthält
+  `clippy` 0.1.100 und `rustfmt` 1.11.0) plus `libasound2-dev`. Wegwerfcrate mit
+  `rusqlite 0.43` (`bundled`) und `cpal 0.18.2`: `cargo fmt --check`,
+  `cargo clippy --all-targets -- -D warnings` und `cargo test` grün, der
+  SQLite-Test liefert 42 — die beiden echten Kern-Abhängigkeiten bauen also.
+  Tauri-`-dev`-Pakete wurden **nicht** installiert: think baut den Kern, claw die
+  Schale.
+* **Update**: [AGENTS.md](AGENTS.md) (Verifikationsabschnitt: think als
+  Kern-Bauplatz, claw für Schalen), [STATE.md](STATE.md), [HANDOFF.md](HANDOFF.md)
+  — die Aussage „think hat kein `cargo`" ist damit an allen drei Stellen
+  ersetzt.
+* **Nebenbefund**: das `rustup`-Installerskript gab beim Ausführen die
+  Build-Ausgabe eines C-Crates auf stdout aus (auf elite und think gleich). Die
+  Versionsprüfung danach (`cargo`, `clippy`, `fmt`) ist der verlässliche Beleg,
+  nicht die Skriptausgabe.
+
 ## 2026-11-21 — Linux-Spike auf X11: Hotkeys, Injection, Zwischenablage, Tray, Audio (#12)
 
 * **Messung**: Prüfstand elite (Xubuntu 26.04.1, XFCE 4.20.7, X11 `:0`), Rust

@@ -242,10 +242,12 @@ Recherchen, zwei Vorgängerprojekten und dem Provisioning-Befund von claw.
 - WebView2 ist auf Windows 10/11 vorinstalliert; im Installer prüfen, nicht
   mitliefern.
 - Auf **claw** ist die Toolchain eingerichtet (#19, 2026-11-20: Rust 1.100.0 mit
-  `clippy`/`rustfmt`, Tauri-Abhängigkeiten, `appimagetool`). **elite** hat seit
-  2026-11-21 ebenfalls Rust 1.100.0 mit `clippy`/`rustfmt` und `libasound2-dev`
-  (#12, ohne Tauri-`-dev`-Pakete); **think** hat kein `cargo`; **dell** bleibt der
-  Desktop-Prüfstand.
+  `clippy`/`rustfmt`, Tauri-Abhängigkeiten, `appimagetool`). **think** ist seit
+  2026-11-21 der **Kern-Bauplatz** (#20: Rust 1.100.0 mit `clippy`/`rustfmt`,
+  `libasound2-dev`, 4 Kerne, 30 GB RAM — ohne Tauri-`-dev`-Pakete). **elite** hat
+  seit 2026-11-21 ebenfalls Rust 1.100.0 mit `clippy`/`rustfmt` und
+  `libasound2-dev` (#12, ohne Tauri-`-dev`-Pakete); **dell** bleibt der
+  Desktop-Prüfstand für echte Hotkeys, Tray und AppImage.
 - **elite erreicht man über `ssh elite`** — der Alias zeigt seit 2026-11-21 auf
   `10.8.0.3` (VPN-Pool-Adresse, war vorher fälschlich `10.8.0.24`). Sein `/tmp`
   ist tmpfs: nach einem Reboot ist der Spike-Code weg.

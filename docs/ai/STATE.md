@@ -33,8 +33,9 @@ status: stable
   Die Toolchain auf **claw** ist seit #19 bereit (2026-11-20: Rust 1.100.0 mit
   `clippy`/`rustfmt`, Tauri-Abhängigkeiten, `libasound2-dev`, `appimagetool`);
   **elite** hat seit 2026-11-21 ebenfalls `cargo` 1.100.0 mit `clippy`/`rustfmt`
-  (#12, Spike-Prüfstand X11, ohne die Tauri-`-dev`-Pakete); **think** hat kein
-  `cargo`.
+  (#12, Spike-Prüfstand X11, ohne die Tauri-`-dev`-Pakete); **think** ist seit
+  2026-11-21 der **Kern-Bauplatz** (#20: Rust 1.100.0, `clippy`/`rustfmt`,
+  `libasound2-dev`, 4 Kerne, 30 GB RAM; ohne Tauri-`-dev`-Pakete).
 - Keine Windows-VM auf think: qemu, libvirt, OVMF und swtpm sind installiert,
   es ist aber noch kein Gast definiert.
 - Keine Linux- und keine macOS-Schale; die Linux-Schale ist der nächste
