@@ -53,10 +53,14 @@ geladen:
 
 ## Status
 
-**Doku-Phase, kein Code.** Es wird kein Produktcode geschrieben, bevor die
-Spikes die Bausteine belegt haben — Reihenfolge: Provisioning (#19), Linux-Spike
-(#12), macOS-Spike (#13), Windows-Spike (#1); nach dem Provisioning laufen
-#4/#5/#10 hardwarefrei parallel zu den Spikes.
+**Der Kern steht, die Schalen fehlen.** `crates/core` enthält seit 2026-11-21
+die Domäne aus #4: die zwei Tabellen aus `DOMAIN.md`, das Arbeitsverzeichnis mit
+`NNN.wav`/`NNN.txt`, den FIFO und die zehn Invarianten — jede mit einem Test in
+`crates/core/tests/invarianten.rs`, der sie bricht, wenn man sie entfernt.
+Produktcode entsteht **nur hardwarefrei** — Domäne (#4), DSP-Port (#5) und
+Konverter (#10) —, solange die Spikes die Plattformbausteine nicht belegt haben;
+Reihenfolge: Provisioning (#19, erledigt), Linux-Spike (#12), macOS-Spike (#13),
+Windows-Spike (#1).
 Das Grill-Ergebnis steht als Kommentar an Epic #3 und ist in `CONTEXT.md`,
 `DOMAIN.md` und `DECISIONS.md` eingearbeitet; die Beschlusslage vom 2026-11-16
 (drei Ziele, kein Tastenhook, Fähigkeitsleiter) in `docs/ai/DECISIONS.md`, E1–E10.
@@ -97,10 +101,14 @@ cargo test
 
 Nur grün wird committet. Keine Ausnahmen.
 
-**Solange kein Crate existiert** (also bis zum ersten Code-Commit), treten an
-diese Stelle die Konsistenzprüfungen der Dokumente: `CONTEXT.md` ist die Quelle
-der Begriffe, `DOMAIN.md` die Quelle der Invarianten, `DECISIONS.md` darf keine
-dazu widersprüchliche Entscheidung enthalten. Ein Doku-Commit ist grün, wenn
+Seit #4 existiert das Crate: die drei Befehle laufen im Workspace-Wurzelverzeichnis
+und decken den Kern ab. Ein Test zählt nur, wenn er die zugehörige Invariante
+wirklich bricht — der Nachweis steht im Commit zu #4 (drei Invarianten einzeln
+entfernt, drei Tests rot).
+
+Die Konsistenzprüfung der Dokumente bleibt daneben bestehen: `CONTEXT.md` ist die
+Quelle der Begriffe, `DOMAIN.md` die Quelle der Invarianten, `DECISIONS.md` darf
+keine dazu widersprüchliche Entscheidung enthalten. Ein Doku-Commit ist grün, wenn
 keine Vokabel und keine Invariante an zwei Stellen verschieden definiert ist.
 
 Die Toolchain ist nicht überall vorhanden. **#19 hat claw provisioniert**

@@ -3,7 +3,7 @@ type: Handoff
 title: Übergabe
 description: Was die nächste Sitzung zuerst tut, in welcher Reihenfolge, und was schon bekannt ist.
 tags: [wissensbasis, handoff]
-generated: { by: opencode/general, at: 2026-11-21T03:22:15Z }
+generated: { by: opencode/general, at: 2026-11-21T08:40:06Z }
 status: stable
 ---
 
@@ -11,7 +11,7 @@ status: stable
 
 Arbeitsverzeichnis: `~/repos/georgernstgraf/diktatwerkstatt`
 Repository: https://github.com/georgernstgraf/diktatwerkstatt
-Stand: **Doku-Phase, kein Code.** Branch `main`, Arbeitskopie sauber. Beschlossen
+Stand: **der Kern steht (#4), die Schalen fehlen.** Branch `main`. Beschlossen
 sind **drei Ziele** (Windows, Linux, macOS) mit einem geteilten Kern und drei
 dünnen Plattformschalen, **kein globaler Tastenhook** und **keine Plattformweiche
 im Kern** — die Beschlusslage steht als E1–E10 in `DECISIONS.md`. Gebaut wird
@@ -55,6 +55,33 @@ Provisioniert sind **claw** (Kern und Schale, headless, kein Display) und seit
 2026-11-21 **elite** (Rust 1.100.0 mit `clippy`/`rustfmt`, `libasound2-dev`; ohne
 Tauri-`-dev`-Pakete). **dell** bleibt der Desktop-Prüfstand für echte Hotkeys,
 Tray und AppImage; **think** hat keine Rust-Toolchain.
+
+## ✅ Erledigt — Schritt 5a: #4 Domänenkern (2026-11-21, auf think)
+
+`Cargo.toml` und `crates/core` stehen; der Kern ist zum ersten Mal baubar und
+geprüft (`cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`,
+`cargo test`: 15 Tests grün, ohne App, ohne Netz, ohne Hardware).
+
+| Baustein | Datei | Inhalt |
+|---|---|---|
+| Schema | `crates/core/src/store.rs` | `diktat` und `prompt` als `STRICT`-Tabellen, `PRAGMA user_version = 1`, WAL mit `synchronous = FULL` |
+| Arbeitsverzeichnis | `crates/core/src/fragments.rs` | `NNN.wav`/`NNN.txt`, Schreiben über `.tmp` + `rename`, Verkettung ohne Trenner, 999-Grenze |
+| Fehler | `crates/core/src/error.rs` | typisierte Fehler — Append auf ein offenes Diktat ist ein Wert, kein Panic |
+| Invarianten | `crates/core/tests/invarianten.rs` | ein Test je Invariante plus die Fälle aus dem Issue |
+
+Drei Entscheidungen, die man kennen muss, bevor man weiterbaut:
+
+- Der **Abschluss ist zweistufig** (`commit_raw_text`, dann
+  `remove_working_dir`); `finish_transcription` ist der Weg der App. Nur so ist
+  der Absturz zwischen Text und Audio ein Test (`DECISIONS.md`, 2026-11-21).
+- Der **sichtbare Text hat genau einen Leseweg**: `Diktat::view_text(View)`.
+  Invariante 8 hängt daran, dass es keinen zweiten gibt.
+- Das **Arbeitsverzeichnis entsteht vor dem Commit** des Diktats, die
+  Verzeichnisse verdrängter Diktate verschwinden **nach** dem Commit — beides,
+  damit `audio_dir` nicht lügen kann.
+
+Gegengeprüft: Append-Sperre, Lückenprüfung der Verkettung und die Reihenfolge im
+Abschluss einzeln entfernt ⇒ genau der jeweilige Test wird rot.
 
 ## Schritt 4 — die Spikes, Linux zuerst
 
@@ -152,21 +179,19 @@ Eingabe-Desktop). Beides samt Messwerten in `PITFALLS.md`, Abschnitt „Windows"
 Der Spike-Code liegt unter `%TEMP%\opencode\dw-win-spike` und ist **nicht** im
 Repo.
 
-## Schritt 5 — hardwarefrei: #4 Domäne, #5 DSP-Port, #10 Konverter
+## Schritt 5 — hardwarefrei: #5 DSP-Port, #10 Konverter (#4 erledigt)
 
 Alle drei brauchen keine Hardware und kein Netz, laufen also auch auf Linux —
 und die Toolchain steht überall, wo sie gebraucht wird (claw, elite und seit
 #20 **think als Kern-Bauplatz**). Sie laufen parallel zu den Spikes; die
 Reihenfolge der Spikes ändert sich dadurch nicht: #12 → #13 → #1.
 
-**Der nächste Bauabschnitt ist #4**, am besten auf think (`cargo` lokal, kein
-`ssh`-Umweg): `Cargo.toml` und `crates/core` anlegen, dann die Domäne. Von dort
-wachsen #5 und #10 in dasselbe Crate — alle drei liegen in `crates/core`, also
-**sequenziell**, nicht parallel.
+**Der nächste Bauabschnitt ist #5**, im selben Crate wie #4 (auf think,
+`export PATH="$HOME/.cargo/bin:$PATH"` vor jedem `cargo`-Aufruf). #4, #5 und #10
+liegen alle in `crates/core`, also **sequenziell**, nicht parallel.
 
-- **#4** hat jetzt ein sehr kleines Ziel: `diktat` und `prompt` gemäß
-  `DOMAIN.md`, das Arbeitsverzeichnis mit `NNN.wav`/`NNN.txt`, die zehn
-  Invarianten — jede mit einem Test, der sie bricht, wenn man sie entfernt.
+- **#4** ist erledigt (Schritt 5a oben): `diktat` und `prompt` gemäß `DOMAIN.md`,
+  das Arbeitsverzeichnis, die zehn Invarianten mit je einem Test.
 - **#5** hat einen fertigen Prüfstein: die Tests aus
   `polished-recognition/:core` und `aitranscribe/tests/test_fragmenter.py`. Sie
   werden portiert, nicht neu erfunden.

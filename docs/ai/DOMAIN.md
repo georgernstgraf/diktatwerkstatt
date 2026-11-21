@@ -3,7 +3,7 @@ type: Domain
 title: Domänenmodell
 description: Tabellen, Invarianten, Abläufe und Arbeitsverzeichnis der Diktatwerkstatt.
 tags: [domain, datenmodell]
-generated: { by: opencode/general, at: 2026-11-20T16:23:16Z }
+generated: { by: opencode/general, at: 2026-11-21T08:40:06Z }
 status: stable
 ---
 
@@ -78,6 +78,15 @@ audio/42/
 - Am Ende wird in Fragmentreihenfolge verkettet. Die `.txt`-Dateien enden
   **ohne** abschließenden Zeilenumbruch — der Zwischenraum an einer Naht gehört
   der Naht-Reparatur, nicht dem Dateischreiber.
+- Die Nummerierung beginnt bei `001` und ist lückenlos; `999` ist die höchste
+  Nummer. Das Arbeitsverzeichnis heißt `<Datenverzeichnis>/audio/<diktat-id>/`
+  und entsteht mit dem Diktat.
+- Nach einem Absturz kann **beides** liegen (`NNN.txt` und `NNN.wav`): die `.txt`
+  gewinnt, das Fragment gilt als erledigt, die `.wav` ist nur noch nicht
+  abgeräumt. Eine halb geschriebene `NNN.txt.tmp` zählt nicht als Fortschritt.
+- Fehlt das Verzeichnis, obwohl `audio_dir` gesetzt ist, gilt der committete
+  `raw_text` als fertiger Text — Invariante 3 hat ihn vorher geschrieben. Der
+  Abschluss wird dann nur noch zu Ende geführt.
 
 ## Die zehn Invarianten
 

@@ -3,13 +3,35 @@ type: Decisions
 title: Entscheidungen
 description: Getroffene Architektur- und Produktentscheidungen mit Begründung.
 tags: [entscheidungen, architektur]
-generated: { by: opencode/general, at: 2026-11-20T16:23:16Z }
+generated: { by: opencode/general, at: 2026-11-21T08:40:06Z }
 status: stable
 ---
 
 # Entscheidungen
 
 Neueste oben. Jeder Eintrag nennt Entscheidung, Grund und verworfene Alternative.
+
+## 2026-11-21 — Der Abschluss ist im Code zweistufig, das Schema ist versioniert
+
+**Entscheidung:** `Store::finish_transcription` ist der Weg, den die App geht;
+darunter stehen zwei öffentliche Schritte: `commit_raw_text` (Invariante 3,
+Schritt 1) und `remove_working_dir` (Schritt 2), ersterer in einer eigenen
+Transaktion. Das Schema ist `STRICT`, trägt `PRAGMA user_version = 1`, und ein
+neueres Schema wird mit einem typisierten Fehler abgelehnt; WAL läuft mit
+`synchronous = FULL`. Das Diktatverzeichnis entsteht **vor** dem Commit des
+Diktats; die Verzeichnisse verdrängter Diktate verschwinden **nach** dem Commit.
+**Grund:** Text-vor-Audio (Invarianten 2 und 3) ist nur dann eine Zusage, wenn
+der Commit die Platte erreicht und wenn ein Absturz zwischen den beiden Schritten
+nachstellbar ist. Mit zwei Schritten ist der Abbruch ein Test, der genau den
+Zustand herstellt, den die Wiederaufnahme vorfindet — ohne Testhaken im
+Produktivpfad. Die Reihenfolge beim Anlegen und Verdrängen hält den einen
+Zustandsmarker ehrlich: ein Verzeichnis ohne Diktat ist Müll, ein Diktat mit
+gesetztem `audio_dir` ohne Verzeichnis wäre eine Lüge.
+**Verworfen:** eine einzige Abschlussfunktion mit `#[cfg(test)]`-Haken (die
+Integrationstests sehen ihn nicht, also gäbe es keinen Test für Invariante 3);
+`synchronous = NORMAL` (schneller, aber „committet" wäre eine Behauptung);
+Verzeichnisse vor dem Commit zu löschen (ein Rollback hinterließe Diktate, deren
+Audio fehlt, obwohl sie offen aussehen).
 
 ## 2026-11-20 — E1 Drei Ziele, ein Kern
 

@@ -3,7 +3,7 @@ type: Reference
 title: Fallstricke
 description: Hart erarbeitete Fallen aus Audio, STT, Textübergabe, Bedienung und den drei Plattformen — nicht neu entdecken.
 tags: [referenz, fallstricke]
-generated: { by: opencode/general, at: 2026-11-21T03:22:15Z }
+generated: { by: opencode/general, at: 2026-11-21T08:40:06Z }
 status: stable
 sources:
   - id: whisper-silence
@@ -237,6 +237,11 @@ dem Bau, soweit keine Messung daneben steht; der X11-Teil ist gemessen.
   Shell, `~/.profile` bleibt ungelesen, `~/.bashrc` hilft dort ebenfalls nicht.
   Remote-Aufrufe brauchen `ssh host 'bash -lc "cargo …"'` oder den vollen Pfad
   `/home/<user>/.cargo/bin/cargo` (claw, 2026-11-20).
+- **Auch lokal findet die Agent-Shell `cargo` nicht.** Auf think liegt die
+  Toolchain in `~/.cargo/bin`, aber die Shell, in der der Agent läuft, hat den
+  Ordner nicht im `PATH`; `which cargo` bleibt leer, obwohl `cargo --version`
+  über den vollen Pfad 1.100.0 meldet (2026-11-21, #4). Vor jedem `cargo`-Aufruf
+  `export PATH="$HOME/.cargo/bin:$PATH"` — oder den vollen Pfad verwenden.
 - **3 GB RAM sind die Grenze, nicht die Software.** Auf claw (3,8 GB, davon
   ~0,7 GB frei, Swap fast voll) bauen Workspace-Aufrufe mit `-j 2`; parallele
   Builds laufen ins OOM. `cpal` braucht `libasound2-dev`, nicht nur

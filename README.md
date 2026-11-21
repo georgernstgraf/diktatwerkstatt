@@ -3,10 +3,12 @@
 Ein Diktier-Werkzeug für Menschen, die professionelle Texte schreiben, ohne zu
 tippen: Sekretariate, Kanzleien, Assistenz.
 
-**Status: Spezifikation.** Es gibt noch keinen Code. Dieses Repository hält
-Vokabular, Domänenmodell und Entscheidungen fest, bevor die erste Zeile
-geschrieben wird — nach dem Muster, mit dem TMOG (der neue Task Manager seines
-Originalautors) aus einer 107-seitigen Spezifikation entstanden ist.
+**Status: Kern in Arbeit.** `crates/core` hält seit 2026-11-21 die Domäne
+(Aufgabenstellung #4): zwei SQLite-Tabellen, das Arbeitsverzeichnis mit
+`NNN.wav`/`NNN.txt`, den FIFO und die zehn Invarianten, jede mit einem Test.
+Vokabular, Domänenmodell und Entscheidungen stehen davor fest — nach dem Muster,
+mit dem TMOG (der neue Task Manager seines Originalautors) aus einer 107-seitigen
+Spezifikation entstanden ist.
 
 Beschlossen ist der Rahmen: **drei Ziele** (Windows, Linux, macOS), **ein
 geteilter Kern**, **drei dünne Plattformschalen**, **kein globaler Tastenhook**
@@ -78,9 +80,9 @@ auf jedem Ziel. Was eine Plattform kann, meldet ihre Schale beim Start als
 | [AGENTS.md](AGENTS.md) | Arbeitsregeln für dieses Repository |
 
 Der Einstieg für die nächste Sitzung ist
-[docs/ai/HANDOFF.md](docs/ai/HANDOFF.md): erst das Provisioning (#19), dann der
-Linux-Spike (#12), der macOS-Spike (#13) und zuletzt der Windows-Spike (#1);
-parallel Domäne (#4), DSP-Port (#5) und Konverter (#10).
+[docs/ai/HANDOFF.md](docs/ai/HANDOFF.md): der Domänenkern (#4) steht, als
+Nächstes kommt der DSP-Port (#5) und der Konverter (#10); parallel laufen die
+Spikes — Linux (#12), macOS (#13), Windows (#1).
 
 ## Verwandte Projekte
 
@@ -98,5 +100,5 @@ Dateiformate schon. Die vollständige Liste steht in
 ## Lizenz
 
 Dual lizenziert unter [MIT](LICENSE-MIT) **oder**
-[Apache-2.0](LICENSE-APACHE), nach Wahl des Empfängers. In `Cargo.toml` wird das
-später `license = "MIT OR Apache-2.0"` sein.
+[Apache-2.0](LICENSE-APACHE), nach Wahl des Empfängers. In `Cargo.toml` steht das
+als `license = "MIT OR Apache-2.0"`.

@@ -1,5 +1,32 @@
 # Persistenz-Log
 
+## 2026-11-21 — Domänenkern gebaut: zwei Tabellen, Arbeitsverzeichnis, FIFO, zehn Invarianten (#4)
+
+* **Creation**: `Cargo.toml` (Workspace, Edition 2024, `rust-version` 1.89 wegen
+  `rusqlite` 0.43) und `crates/core` mit `error.rs` (typisierte Fehler, kein
+  Panic an Aufruferfehlern), `fragments.rs` (`WorkingDir`: `NNN.wav`/`NNN.txt`,
+  Schreiben über `.tmp` + `rename`), `store.rs` (zwei `STRICT`-Tabellen,
+  `PRAGMA user_version = 1`, WAL mit `synchronous = FULL`) und
+  `tests/invarianten.rs` (15 Tests, einer je Invariante plus die Fälle aus dem
+  Issue).
+* **Entscheidung**: der Abschluss ist im Code zweistufig (`commit_raw_text`,
+  dann `remove_working_dir`), `finish_transcription` ist der Weg der App — siehe
+  [DECISIONS.md](DECISIONS.md) vom 2026-11-21. Weitergegeben werden `Diktat` und
+  `WorkingDir`; der sichtbare Text hat genau einen Leseweg (`view_text`), damit
+  Fenster und Zwischenablage nicht auseinanderlaufen können (Invariante 8).
+* **Verifikation**: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`
+  und `cargo test` grün auf **think** (Rust 1.100.0, `rusqlite` 0.43 gebündelt,
+  `tempfile` nur als Dev-Abhängigkeit) — ohne laufende App, ohne Netz nach dem
+  ersten Bau.
+* **Gegenprobe**: drei Invarianten einzeln aus dem Code entfernt —
+  Append-Sperre, Lückenprüfung der Verkettung, Reihenfolge im Abschluss — und
+  jedes Mal wurde genau der zugehörige Test rot. Die Tests hängen an der
+  Invariante, nicht an der Implementierung.
+* **Update**: [DOMAIN.md](DOMAIN.md) (Arbeitsverzeichnis: Nummerierung ab `001`,
+  `.txt` gewinnt gegen `.wav`, fehlendes Verzeichnis bei gesetztem `audio_dir`),
+  [PITFALLS.md](PITFALLS.md) (die Agent-Shell auf think findet `cargo` nicht im
+  `PATH`), [STATE.md](STATE.md), [HANDOFF.md](HANDOFF.md), `AGENTS.md`, `README.md`.
+
 ## 2026-11-21 — think ist der Kern-Bauplatz: Rust 1.100.0 provisioniert (#20)
 
 * **Messung**: rustup mit `--default-toolchain 1.100.0 --profile default` (enthält
