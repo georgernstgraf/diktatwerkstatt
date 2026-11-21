@@ -152,12 +152,17 @@ Eingabe-Desktop). Beides samt Messwerten in `PITFALLS.md`, Abschnitt „Windows"
 Der Spike-Code liegt unter `%TEMP%\opencode\dw-win-spike` und ist **nicht** im
 Repo.
 
-## Schritt 5 — hardwarefrei, aber erst nach dem Provisioning: #4 Domäne, #5 DSP-Port, #10 Konverter
+## Schritt 5 — hardwarefrei: #4 Domäne, #5 DSP-Port, #10 Konverter
 
 Alle drei brauchen keine Hardware und kein Netz, laufen also auch auf Linux —
-aber sie brauchen `cargo`. Sie beginnen deshalb **nach** #19 und laufen dann
-parallel zu den Spikes. Die Reihenfolge der Spikes ändert sich dadurch nicht:
-#19 → #12 → #13 → #1, dazu #4/#5/#10 ab dem Moment, in dem die Toolchain steht.
+und die Toolchain steht überall, wo sie gebraucht wird (claw, elite und seit
+#20 **think als Kern-Bauplatz**). Sie laufen parallel zu den Spikes; die
+Reihenfolge der Spikes ändert sich dadurch nicht: #12 → #13 → #1.
+
+**Der nächste Bauabschnitt ist #4**, am besten auf think (`cargo` lokal, kein
+`ssh`-Umweg): `Cargo.toml` und `crates/core` anlegen, dann die Domäne. Von dort
+wachsen #5 und #10 in dasselbe Crate — alle drei liegen in `crates/core`, also
+**sequenziell**, nicht parallel.
 
 - **#4** hat jetzt ein sehr kleines Ziel: `diktat` und `prompt` gemäß
   `DOMAIN.md`, das Arbeitsverzeichnis mit `NNN.wav`/`NNN.txt`, die zehn
