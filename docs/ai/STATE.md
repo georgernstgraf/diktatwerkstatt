@@ -24,7 +24,7 @@ status: stable
 | `docs/ai/STATE.md` | diese Datei |
 | `AGENTS.md` | Stack, Schichtungsregel, Verifikationsbefehle |
 | `LICENSE-MIT`, `LICENSE-APACHE` | dual lizenziert, `MIT OR Apache-2.0` |
-| Issues | Epic #3 mit offenen Sub-Issues #1, #4–#10 und #12–#18; #2, #11 und #19 geschlossen; #3 ausgegrillt |
+| Issues | Epic #3 mit offenen Sub-Issues #1, #4–#10 und #12–#18; #2, #11, #19 und #20 geschlossen (#19 claw, #20 think provisioniert); #3 ausgegrillt |
 
 ## Existiert nicht
 
