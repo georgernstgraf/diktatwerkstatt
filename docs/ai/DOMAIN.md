@@ -136,6 +136,32 @@ Die Fähigkeitsleiter ist die Testsuite: eine Fake-Plattform mit
 `{ja, ja}` ist X11 oder Windows. Derselbe Kern, zwei Sätze, zwei erwartete
 Verhalten — ohne Hardware.
 
+### Gemessen je Kompositor (Linux, #12)
+
+| Fähigkeit | Wayland/GNOME (think, 2026-11-20) | X11/XFCE (elite, Xubuntu, 2026-11-21) |
+|---|---|---|
+| `global_hotkey` | ja, über `GlobalShortcuts` — aber nur mit gedeckter App-ID und installierter `.desktop`; ohne Backend (GNOME 45–47) **nein** | ja, über `XGrabKey`; das Portal **existiert dort nicht** |
+| `foreground_window` | **nein**, keine API | ja, `_NET_ACTIVE_WINDOW` in unter 3 ms |
+| `insert_keystroke` | **nein** — `enigo`/`xdotool` melden Erfolg und tippen nichts | ja, XTEST erreicht das fremde Fenster (gemessen); für die Lieferung genügt **ein** Strg+V |
+| `clipboard_envelope` | `html_fragment` | `html_fragment` |
+| `clipboard_exclusion` | `keine` | `keine` — der Hinweis wird vom Clipboard-Manager ignoriert |
+| `tray` | ja, AppIndicator/SNI (Erweiterung nötig) | ja, StatusNotifierItem; XEmbed-Systray fehlt im Panel |
+
+Vier Regeln folgen daraus für jede X11-Schale:
+
+- **`Ctrl+Alt+F<n>` wird nie angeboten.** Der X-Server behandelt die Kombination
+  vor jedem Client-Grab; ein synthetischer Anschlag schaltet den Bildschirm auf
+  eine Textkonsole um (`PITFALLS.md`, „X11").
+- **Ein Hotkey braucht vier Grabs**: `plain`, `+Lock`, `+Mod2`, `+Lock+Mod2`.
+  Sonst ist er bei aktivem CapsLock stumm.
+- **Eingefügt wird über die Zwischenablage, nicht getippt.** Die Lieferung
+  schreibt das Fragment und sendet **ein** Strg+V; XTEST kann auch beliebigen
+  Unicode tippen, das kostet aber ~25 ms pro Zeichen (siehe `PITFALLS.md`) und
+  ist kein Weg für ein Transkript.
+- **Vordergrundfenster**: erstes Item von `_NET_ACTIVE_WINDOW` lesen, Fenster
+  validieren, Toplevel und Eingabefokus nicht verwechseln; `same_window`
+  vergleicht das validierte Toplevel.
+
 ## Ablauf: roh
 
 1. Diktier-Hotkey „diktieren roh" → Aufnahme beginnt; ein `diktat` entsteht mit
@@ -252,7 +278,7 @@ Für alle drei Ziele gleich:
 |---|---|---|---|
 | Windows | `CF_HTML` + `CF_UNICODETEXT` | harte API: `CanIncludeInClipboardHistory=0`, `CanUploadToCloudClipboard=0`, `ExcludeClipboardContentFromMonitorProcessing` | **erzwungen** — der Marker gilt für den gesamten Inhalt |
 | macOS | `public.html` + `public.utf8-plain-text` | De-facto-Konvention `org.nspasteboard.ConcealedType` (+ `TransientType`) | **Konvention** — von Maccy, PastePal u. a. honoriert, vom OS nicht erzwungen |
-| Linux | `text/html` + `text/plain;charset=utf-8` | praktisch nichts; KDE kennt `x-kde-passwordManagerHint`, GNOME hat keine eingebaute History | **keine Zusage** — die Doku verspricht dort keinen Ausschluss |
+| Linux | `text/html` + `text/plain;charset=utf-8` | praktisch nichts; `x-kde-passwordManagerHint=secret` wurde gemessen mitgeliefert und von `xfce4-clipman` **ignoriert** | **keine Zusage** — die Doku verspricht dort keinen Ausschluss |
 
 - Die Ausschlussformate wirken **global** für den gesamten Inhalt, nicht je
   Datenformat — `CF_HTML` daneben zu legen hebt den Ausschluss nicht auf.
@@ -283,10 +309,12 @@ Linux (`text/html`) und macOS (`public.html`) nehmen das nackte Fragment.
 - macOS: `public.html` und `public.utf8-plain-text`, dazu
   `org.nspasteboard.ConcealedType` (und `TransientType`) setzen. Das OS erzwingt
   den Marker nicht; Clipboard-Manager halten sich daran.
-- Linux: `text/html` und `text/plain;charset=utf-8`. Einen wirksamen
-  History-Ausschluss gibt es praktisch nicht; KDE kennt
-  `x-kde-passwordManagerHint`, GNOME hat keine eingebaute History. Die Zusage
-  lautet hier deshalb **nicht** „nichts landet in der History".
+- Linux: `text/html` und `text/plain;charset=utf-8`, dazu
+  `x-kde-passwordManagerHint=secret` (KF5/KF6 und einige Manager kennen ihn).
+  Einen wirksamen History-Ausschluss gibt es praktisch nicht: auf Xubuntu legte
+  `xfce4-clipman` den markierten Inhalt trotz Hint in seine History (gemessen
+  2026-11-21, `PITFALLS.md` „X11"). Die Zusage lautet hier deshalb **nicht**
+  „nichts landet in der History".
 
 ## Fehlerfälle
 
@@ -297,6 +325,7 @@ Linux (`text/html`) und macOS (`public.html`) nehmen das nackte Fragment.
 | Schlüssel abgelehnt | wie oben, plus Handlungsanweisung im Fenster |
 | nur Stille aufgenommen | leere `.txt` je Fragment, `raw_text` leer, nichts in die Zwischenablage, Meldung |
 | Plattform kann nicht einfügen (Fähigkeit fehlt) | kein Einfügen und **kein** Fehler — der Text bleibt in der Zwischenablage; `same_window` fällt auf `never` |
+| Hotkey schon belegt (`BadAccess`) | die Registrierung scheitert erkennbar (0,3 ms), nicht still: die Schale meldet die Kombination als belegt, die anderen beiden bleiben nutzbar |
 | Absturz mitten in der Aufnahme | das Verzeichnis bleibt; beim Start werden die restlichen `.wav` transkribiert **und** der Abschluss läuft |
 | Diktat fällt aus dem FIFO | das Arbeitsverzeichnis wird mitgelöscht |
 

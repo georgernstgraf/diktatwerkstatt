@@ -51,9 +51,10 @@ nicht** (sshd startet eine Non-Login-Shell, `~/.profile` bleibt ungelesen) — i
 `ssh claw 'bash -lc "cargo …"'` oder der volle Pfad; und **der Speicher ist die
 enge Stelle**, Workspace-Builds laufen mit `-j 2`, nicht parallel.
 
-Provisioniert ist **nur claw**: dort laufen Kern und Schale (headless kompiliert,
-`cargo test`, kein Display). **dell** bleibt der Desktop-Prüfstand für echte
-Hotkeys, Tray und AppImage; think und elite haben keine Rust-Toolchain.
+Provisioniert sind **claw** (Kern und Schale, headless, kein Display) und seit
+2026-11-21 **elite** (Rust 1.100.0 mit `clippy`/`rustfmt`, `libasound2-dev`; ohne
+Tauri-`-dev`-Pakete). **dell** bleibt der Desktop-Prüfstand für echte Hotkeys,
+Tray und AppImage; **think** hat keine Rust-Toolchain.
 
 ## Schritt 4 — die Spikes, Linux zuerst
 
@@ -82,27 +83,49 @@ Abschnitt „Windows".
 
 Erkenntnisse danach nach `docs/ai/PITFALLS.md`.
 
-## 🟡 In Arbeit — #12 Linux-Spike (2026-11-20)
+## 🟡 In Arbeit — #12 Linux-Spike (2026-11-20, X11-Teil 2026-11-21 gemessen)
+
+**X11 ist durch** (elite, Xubuntu 26.04.1, XFCE 4.20.7, X11 `:0`, Sitzung 8;
+`cargo` 1.100.0, `cpal` 0.18.2; Wegwerfcode unter `/tmp/dw-linux-spike-elite/`
+und `/tmp/dw-me/`, nichts davon im Repo). Alle Zahlen samt Fehlermeldungen stehen
+in `PITFALLS.md`, Abschnitt „X11":
+
+- **Hotkeys:** `XGrabKey` trägt (0,23–0,32 ms je Grab), Fremdbelegung meldet sich
+  als `BadAccess` (10, major 33). Vier Masken je Kombination sind Pflicht, sonst
+  ist der Hotkey bei CapsLock stumm. **`Ctrl+Alt+F<n>` ist tabu** — der Server
+  behandelt es vor jedem Grab und ein XTEST-Anschlag schaltet die VT um.
+- **Injection:** XTEST erreicht das fremde Fenster; Unicode tippt byte-identisch
+  inkl. `ß`, `€`, `😀` — aber nur mit ~25 ms Serialisierung (~32 Zeichen/s), ohne
+  sie fehlten 81 von 200 Bytes. Für die Lieferung zählt das nicht (sie schreibt
+  die Zwischenablage und sendet ein Strg+V), aber es belegt die Fähigkeit.
+  `_NET_ACTIVE_WINDOW` hat zwei Items, tote IDs kommen vor.
+- **Zwischenablage:** eigener Eigentümer mit sechs Zielen, HTML und Reintext
+  byte-gleich; `xfce4-clipman` ignoriert `x-kde-passwordManagerHint`.
+- **Tray:** StatusNotifier (Watcher vom Host, sechs fremde Items); das Panel hat
+  kein XEmbed-Systray.
+- **Audio 30 s:** +0,009 % bzw. −0,024 % Frames, größte Callback-Lücke 12,3 ms,
+  keine Streamfehler — dieselbe Größenordnung wie Windows.
+- **Nebenbefund:** `/tmp` auf elite ist tmpfs; ein Reboot löscht den Wegwerfcode.
 
 Gemessen auf **think** (Ubuntu 26.04.1, GNOME Shell 50.1, Wayland,
 `xdg-desktop-portal` 1.21.1 mit Backend `xdg-desktop-portal-gnome` 50.0);
-Wegwerfcode liegt unter `/tmp/dw-linux-spike/` auf think, nichts davon im Repo:
+Wegwerfcode unter `/tmp/dw-linux-spike/`:
 
 - **Frage 2 (GlobalShortcuts):** Portal und `host.portal.Registry` sind vorhanden
   (`version = 1`). Das App-ID-Gate ist schärfer als im Issue vermutet und steht als
   gemessener Befund in `PITFALLS.md`: der cgroup-Scope `app-<id>@…` **und** eine
   installierte `.desktop`-Datei sind beide nötig; ein `app_id`-Schlüssel in den
-  Optionen wird ignoriert.
+  Optionen wird ignoriert. Auf X11 gibt es das Interface **gar nicht**.
 - **Offen und nicht ohne Mensch messbar:** die Erst-Einwilligung
-  (`BindShortcuts`), ihr Bestand über einen Neustart, und die Injection aus Frage 3.
-  think ist seit Stunden gesperrt (`IdleHint=yes`), **elite** (X11, Frage 1) und
-  **dell** waren nicht erreichbar.
+  (`BindShortcuts`), ihr Bestand über einen Neustart, die Injection in echte
+  Zielapps (Writer, Brave, GTK) und die Sichtprüfung des Tray-Symbols.
+  think war zuletzt gesperrt (`IdleHint=yes`).
 - **Host-Regel des Eigentümers (2026-11-20):** der Windows-Laptop ist für die
   **Windows**-Arbeit da; Linux-Messungen laufen auf einem Linux-Prüfstand, nicht
   per SSH vom Windows-Host aus. #19 auf claw war die Ausnahme (Provisioning).
 
-Menschfrei noch messbar: Frage 4 (Zwischenablage-HTML), Frage 6 (Audio 30 s),
-Teile von Frage 5 (Tray/Autostart) und die Negativproben aus Frage 7.
+Noch offen: Frage 2 über einen Neustart (Wayland), Frage 3 in echten Apps,
+Frage 5/7 auf GNOME und die Sichtprüfung des Tray-Symbols auf elite.
 
 ## 🟡 In Arbeit — #1 Windows-Spike (2026-11-21, auf dem Windows-Laptop)
 
@@ -219,8 +242,13 @@ Recherchen, zwei Vorgängerprojekten und dem Provisioning-Befund von claw.
 - WebView2 ist auf Windows 10/11 vorinstalliert; im Installer prüfen, nicht
   mitliefern.
 - Auf **claw** ist die Toolchain eingerichtet (#19, 2026-11-20: Rust 1.100.0 mit
-  `clippy`/`rustfmt`, Tauri-Abhängigkeiten, `appimagetool`). **think** und **elite**
-  haben kein `cargo`; **dell** bleibt der Desktop-Prüfstand.
+  `clippy`/`rustfmt`, Tauri-Abhängigkeiten, `appimagetool`). **elite** hat seit
+  2026-11-21 ebenfalls Rust 1.100.0 mit `clippy`/`rustfmt` und `libasound2-dev`
+  (#12, ohne Tauri-`-dev`-Pakete); **think** hat kein `cargo`; **dell** bleibt der
+  Desktop-Prüfstand.
+- **elite erreicht man über `ssh elite`** — der Alias zeigt seit 2026-11-21 auf
+  `10.8.0.3` (VPN-Pool-Adresse, war vorher fälschlich `10.8.0.24`). Sein `/tmp`
+  ist tmpfs: nach einem Reboot ist der Spike-Code weg.
 - Der **Windows-Laptop** hat Rust 1.100.0 und MSVC 14.44 und ist damit für die
   Windows-Arbeit tauglich. Achtung: der Agent läuft dort in **Session 0** — jede
   Messung, die Zwischenablage, Hotkeys, Tray oder Injektion betrifft, muss in die

@@ -1,5 +1,31 @@
 # Persistenz-Log
 
+## 2026-11-21 — Linux-Spike auf X11: Hotkeys, Injection, Zwischenablage, Tray, Audio (#12)
+
+* **Messung**: Prüfstand elite (Xubuntu 26.04.1, XFCE 4.20.7, X11 `:0`), Rust
+  1.100.0, `cpal` 0.18.2, Wegwerf-Crates außerhalb des Repos. **Hotkeys**:
+  `XGrabKey` trägt (0,23–0,32 ms), Fremdbelegung meldet `BadAccess` (10/33);
+  vier Masken je Kombination nötig, sonst stumm bei CapsLock; `Ctrl+Alt+F<n>`
+  ist tabu, weil der Server es vor jedem Grab abfängt (XTEST schaltete real die
+  VT um). **Injection**: XTEST mit Keysym-Remap byte-identisch (inkl. `😀`), aber
+  nur mit ~25 ms Serialisierung (~32 Zeichen/s); ohne sie 81 von 200 Bytes
+  verloren. `_NET_ACTIVE_WINDOW` hat zwei Items und tote IDs kommen vor.
+  **Zwischenablage**: eigener Eigentümer mit sechs Zielen, HTML und Reintext
+  byte-gleich; `xfce4-clipman` ignoriert `x-kde-passwordManagerHint` (gemessen
+  mit Marker). **Tray**: nur StatusNotifier, kein XEmbed-Systray im Panel.
+  **Audio 30 s**: +0,009 % / −0,024 % Frames, größte Lücke 12,3 ms, keine
+  Streamfehler.
+* **Umgebungsbefunde**: auf X11 gibt es das `GlobalShortcuts`-Portal **nicht**
+  (21 Interfaces aufgezählt, Backend `-gtk`); `/tmp` auf elite ist tmpfs; der
+  Alias `elite` zeigte auf eine tote VPN-Adresse (jetzt `10.8.0.3`).
+* **Update**: [PITFALLS.md](PITFALLS.md) — neuer Abschnitt **X11**; [DOMAIN.md](DOMAIN.md)
+  — gemessene Fähigkeitsmatrix Wayland/X11 plus vier Regeln; [INTEGRATION.md](INTEGRATION.md)
+  — Hotkey-, Ziel-Fenster- und Zwischenablage-Zeile nachgezogen; [AGENTS.md](AGENTS.md)
+  — Ausschluss-Hinweis und Toolchain-Lage (elite hat `cargo`); [STATE.md](STATE.md)
+  und [HANDOFF.md](HANDOFF.md) auf den Stand gebracht.
+* **Offen**: Wayland-Fragen 2 (Erst-Einwilligung über Neustart), 3 (Injection in
+  Writer/Brave/GTK), 5/7 auf GNOME, Sichtprüfung des Tray-Symbols.
+
 ## 2026-11-21 — Audio, Gerätewechsel und Win+V-Ausschluss gemessen (#1)
 
 * **Messung**: Audio über `cpal`/WASAPI auf dem Windows-Laptop, 48 kHz stereo F32 →

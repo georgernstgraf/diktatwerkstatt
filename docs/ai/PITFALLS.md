@@ -191,9 +191,10 @@ einem Wegwerf-Crate (`windows` 0.62.2, Rust 1.100.0).
 
 ## Linux und Wayland
 
-Befunde aus dem Provisioning (#19, claw, 2026-11-16) und aus den ersten Messungen
-des Linux-Spikes (#12, think, GNOME 50.1, 2026-11-20). Wo eine Messung vorliegt,
-steht sie hier; die Fragen 1, 3, 5 und 7 sind noch Warnungen aus dem Bau.
+Befunde aus dem Provisioning (#19, claw, 2026-11-16), aus den ersten Messungen des
+Linux-Spikes (#12, think, GNOME 50.1, 2026-11-20) und aus dem X11-Prüfstand
+(#12, elite, 2026-11-21). Der Wayland-Teil stützt sich weiter auf Warnungen aus
+dem Bau, soweit keine Messung daneben steht; der X11-Teil ist gemessen.
 
 - **Das GlobalShortcuts-Portal leitet die App-ID aus dem Prozess ab, nicht aus den
   Optionen** (gemessen auf think, GNOME Shell 50.1, 2026-11-20). Ein `app_id`-
@@ -240,6 +241,81 @@ steht sie hier; die Fragen 1, 3, 5 und 7 sind noch Warnungen aus dem Bau.
   ~0,7 GB frei, Swap fast voll) bauen Workspace-Aufrufe mit `-j 2`; parallele
   Builds laufen ins OOM. `cpal` braucht `libasound2-dev`, nicht nur
   `libasound2t64`.
+
+### X11: gemessen auf elite (Xubuntu 26.04.1, XFCE 4.20.7, 2026-11-21)
+
+Prüfstand: Laptop `elite`, Sitzung 8, X11 auf `:0`, `xdg-desktop-portal`
+1.21.1+ds-1ubuntu3.1 mit Backend `xdg-desktop-portal-gtk` 1.15.3, `cpal` 0.18.2,
+Rust 1.100.0. Der Wegwerfcode liegt unter `/tmp/dw-linux-spike-elite/`, nicht im
+Repo; **`/tmp` ist dort tmpfs** und überlebt keinen Neustart.
+
+- **Auf X11 gibt es das GlobalShortcuts-Portal nicht.** `gdbus introspect` auf
+  `org.freedesktop.portal.Desktop` listet 21 Interfaces — Account, Camera,
+  FileChooser, Inhibit, Notification, Secret, Settings … —, aber **kein**
+  `GlobalShortcuts`; das Backend ist `-gtk`, nicht `-gnome`. Auf X11 ist
+  `XGrabKey` der Weg, das Portal ist dort keine Option (und nach dem Paket-Update
+  auf 1.21.1+ds-1ubuntu3.1 unverändert).
+- **`XGrabKey` braucht vier Grabs pro Kombination.** Einmal greifen genügt nicht:
+  gemessen feuerte `Ctrl+Shift+F10` als `plain`, aber **nicht** als `+Lock`,
+  `+Mod2` oder `+Lock+Mod2` — bei aktivem CapsLock ist der Hotkey sonst stumm. Mit
+  CapsLock an war erwartungsgemäß `plain` stumm und `+lock` lebendig. Ein Grab
+  dauert 0,23–0,32 ms; eine **Fremdbelegung meldet sich als
+  `BadAccess (error_code=10, major=33, X_GrabKey)`** in 0,29 ms — die Schale kann
+  „schon belegt" also erkennen und melden.
+- **`Ctrl+Alt+F<n>` ist für die Schale tabu.** Der X-Server behandelt diese
+  Kombination **vor** jedem Client-Grab: der Grab gelingt, der Hotkey feuert aber
+  nie, und ein per XTEST gesendeter Anschlag **schaltet wirklich auf eine
+  Textkonsole um** — der Bildschirm des Menschen wurde schwarz mit blinkendem
+  Cursor, während die Sitzung weiterlief (`Active=no`, zurück mit
+  `sudo -n chvt 7`). Keine dieser Kombinationen anbieten, in keinem Test.
+- **`_NET_ACTIVE_WINDOW` hat zwei Items.** Gemessen `[0x1e00003, 0x0]` mit
+  declared length 2 — **immer nur das erste** lesen. Tote IDs kommen vor: nach
+  dem Abschießen des aktiven Testfensters blieb dessen ID in der Property *und*
+  in `_NET_CLIENT_LIST` stehen, das Lesen endete in `BadWindow`; `PointerRoot`
+  (`0x1`) heißt „kein Fenster". Der Eingabefokus ist oft ein **Kindfenster**
+  (`0x1e00004`) und nicht das Toplevel (`0x1e00003`) — Fenster-ID und Fokus nie
+  gleichsetzen.
+- **Unicode tippt nur mit Serialisierung.** XTEST kennt keine Zeichen; wer Text
+  *tippt* (die Lieferung tut das nicht — sie schreibt die Zwischenablage und sendet
+  ein Strg+V), mappt einen freien Keycode (248–255) auf das Keysym
+  (`0x01000000 + Codepoint` für alles außerhalb Latin-1) und restauriert danach.
+  Ohne Wartezeit zwischen Tastenereignis und nächstem Remap gingen im Test
+  **81 von 200 Bytes still verloren** (einzeln, nicht am Ende); mit **25 ms pro
+  Zeichen** kam `Grüße, Müller€ 1.234,50— „Zitat“😀` dreimal byte-identisch an,
+  also ~32 Zeichen/s. Zeichen, die schon auf einem Level-1-Keycode liegen,
+  schaffen über den normalen Keycode ~820 Zeichen/s. Der Befund belegt nebenbei,
+  dass XTEST das fremde Fenster wirklich erreicht.
+- **`xterm` nimmt `XSendEvent` an.** Die Annahme „viele Apps ignorieren
+  SendEvent" gilt nicht allgemein — gemessen landeten 15 Bytes aus einem
+  synthetischen `SendEvent` im Ziel. Der sichere Weg bleibt XTEST; die Gegenprobe
+  mit einem GTK-/Qt-Fenster fehlt noch.
+- **Die Zwischenablage braucht einen eigenen Eigentümer.** Sechs Ziele
+  gleichzeitig (`TARGETS`, `UTF8_STRING`, `text/plain;charset=utf-8`,
+  `text/html`, `STRING`, `x-kde-passwordManagerHint`) sind möglich, HTML-Fragment
+  und Reintext kamen **byte-gleich** zurück (115 bzw. 64 Bytes, Umlaute, `§`,
+  `€`, Gedankenstrich, `„“` intakt). `xclip` kann das nicht — es dient ein Ziel
+  pro Aufruf; die Schale muss die Selection selbst halten.
+- **`x-kde-passwordManagerHint` wirkt auf diesem Host nicht.** `xfce4-clipman`
+  legte den markierten Inhalt (eindeutiger Marker, `textsrc`) in seine History,
+  obwohl `x-kde-passwordManagerHint=secret` mitgeliefert wurde; die Zeichenkette
+  `passwordManagerHint` kommt im Binary nicht vor. Der Hinweis ist eine Konvention
+  ohne Wirkung — die Zusage bleibt „keine". Auf Xubuntu läuft der Clipman
+  standardmäßig **nicht** (Autostart-Eintrag existiert, das Panel-Plugin fehlt).
+- **Tray ist StatusNotifier, nicht XEmbed.** Das XFCE-Panel hier hat **kein**
+  `systray`-Plugin, sondern `indicator`; `org.kde.StatusNotifierWatcher` gehört
+  `ayatana-indicator-application`, `IsStatusNotifierHostRegistered = true`, sechs
+  fremde Items (nm_applet, blueman, jetbrains-toolbox …). Wer XEmbed schreibt,
+  erscheint auf diesem Desktop gar nicht.
+- **Audio 30 s ist unauffällig.** `cpal` über pipewire-alsa, 48 kHz stereo f32:
+  1.440.256 Frames gegen 1.440.122 erwartet (**+0,009 %**), größte
+  Callback-Lücke 12,3 ms, 0 Streamfehler, Rohdatei 30,01 s; ein zweiter Lauf
+  −0,024 % bei 12,6 ms. Das ist die Größenordnung des Windows-Befunds (−0,035 %,
+  15 ms) — PipeWire liefert nicht schlechter als WASAPI. 1,03 % der Samples lagen
+  bei Eingangsverstärkung 100 % am Vollausschlag: Pegel, kein Aussetzer.
+- **`Data::len()` ist bei `cpal` 0.18 nicht die Puffergröße in Bytes.**
+  `Data::bytes()` liefert die Bytes; mit `len()` zählte die erste Probe 128 statt
+  512 Frames pro Callback und meldete −87,5 %. Genau der Messfehler, der einen
+  Plattformbefund erfindet — jede Frame-Zahl gegen die Rohdatei prüfen.
 
 ## macOS
 

@@ -110,8 +110,12 @@ Die Toolchain ist nicht überall vorhanden. **#19 hat claw provisioniert**
 `appimagetool`; die drei Befehle oben laufen dort grün. Zwei Fallen dabei (Details
 in `docs/ai/PITFALLS.md`): `--profile minimal` bringt **weder `clippy` noch
 `rustfmt`**, und `ssh claw 'cargo …'` findet `cargo` nicht, weil sshd eine
-Non-Login-Shell startet. Auf jedem weiteren Host gilt die Dokumentenprüfung, bis
-er provisioniert ist.
+Non-Login-Shell startet.
+
+**elite hat seit 2026-11-21 ebenfalls cargo 1.100.0 mit `clippy`/`rustfmt`**
+(#12, Spike-Prüfstand X11) — ohne `libwebkit2gtk-4.1-dev`/`libgtk-3-dev`, taugt
+also für Kern und Spikes, nicht für Tauri-Schalen. **think** hat kein `cargo`;
+dort gilt die Dokumentenprüfung, bis es provisioniert ist.
 
 ## Commits und Issues
 
@@ -142,8 +146,9 @@ er provisioniert ist.
   Unter Windows sind die Marker erzwungen (`CanIncludeInClipboardHistory=0`,
   `CanUploadToCloudClipboard=0`, `ExcludeClipboardContentFromMonitorProcessing`);
   macOS kennt die De-facto-Konvention `org.nspasteboard.ConcealedType`; unter
-  Linux gibt es praktisch nichts (KDE: `x-kde-passwordManagerHint`) — dort wird
-  **nicht** behauptet, dass nichts in einer History landet. Eine bewusste Aktion
+  Linux gibt es praktisch nichts (KDE: `x-kde-passwordManagerHint`; gemessen am
+  2026-11-21: `xfce4-clipman` ignoriert den Hinweis) — dort wird **nicht**
+  behauptet, dass nichts in einer History landet. Eine bewusste Aktion
   „Transkript kopieren" gibt es derzeit nicht; sobald es sie gibt, gilt der
   Ausschluss für sie **nicht** — sonst ist der Text nach dem Kopieren nicht in
   der History des Nutzers (siehe `docs/ai/INTEGRATION.md`).

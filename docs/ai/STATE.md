@@ -17,7 +17,7 @@ status: stable
 | `CONTEXT.md` | Vokabular inkl. **Plattformschale**, **Fähigkeitsleiter**, **Diktierplatz**, bewusster Abgrenzungen und Zustandsübergängen |
 | `docs/ai/DOMAIN.md` | zwei Tabellen, zehn Invarianten, **Fähigkeitsleiter**, Abläufe, Arbeitsverzeichnis, Lieferformate je Plattform, Fehlerfälle |
 | `docs/ai/INTEGRATION.md` | Referenz: wie Handy/OpenWhispr die Bausteine lösen, mit Linux- und macOS-Spalte, mit Quellen; „was wir übernehmen" ist auf Zwischenablage, Tray und Hotkeys zusammengeschrumpft |
-| `docs/ai/PITFALLS.md` | Referenz: Fallstricke aus Audio, STT, Textübergabe, Bedienung, **Linux/Wayland** und **macOS**, mit Quellen (Linux/macOS: Warnungen aus dem Bau, Belege folgen mit #12/#13) |
+| `docs/ai/PITFALLS.md` | Referenz: Fallstricke aus Audio, STT, Textübergabe, Bedienung, **Windows**, **Linux/Wayland**, **Linux/X11** und **macOS**, mit Quellen; X11 und Windows gemessen, macOS und Wayland-Fragen 3/5/7 noch aus dem Bau |
 | `docs/ai/DECISIONS.md` | 34 Entscheidungen, je mit verworfener Alternative — darunter die Beschlusslage E1–E10 vom 2026-11-16 |
 | `docs/ai/index.md`, `docs/ai/log.md` | OKF-Bundle-Einstieg (`okf_version: "0.2"`) und Persistenz-Chronik |
 | `docs/ai/HANDOFF.md` | Reihenfolge der nächsten Sitzung inkl. VM-Lage und Provisioning-Befund |
@@ -32,8 +32,9 @@ status: stable
 - Keine Tests, keine CI. `cargo test` läuft ins Leere, weil es kein Crate gibt.
   Die Toolchain auf **claw** ist seit #19 bereit (2026-11-20: Rust 1.100.0 mit
   `clippy`/`rustfmt`, Tauri-Abhängigkeiten, `libasound2-dev`, `appimagetool`);
-  auf **think** und **elite** gibt es kein `cargo`, dort ist es auch nicht
-  vorgesehen.
+  **elite** hat seit 2026-11-21 ebenfalls `cargo` 1.100.0 mit `clippy`/`rustfmt`
+  (#12, Spike-Prüfstand X11, ohne die Tauri-`-dev`-Pakete); **think** hat kein
+  `cargo`.
 - Keine Windows-VM auf think: qemu, libvirt, OVMF und swtpm sind installiert,
   es ist aber noch kein Gast definiert.
 - Keine Linux- und keine macOS-Schale; die Linux-Schale ist der nächste
@@ -59,7 +60,9 @@ Wayland, einer mit `{ja, ja}` ist X11 oder Windows.
 
 ## Nächster Schritt
 
-`docs/ai/HANDOFF.md`, Schritt 4: **#12 Linux-Spike** — auf einem Linux-Prüfstand
-(elite für X11, think/dell für GNOME/Wayland), nicht per SSH vom Windows-Host.
-#19 (Provisioning auf claw) ist erledigt; parallel zu den Spikes laufen #4, #5
-und #10.
+`docs/ai/HANDOFF.md`, Schritt 4: **#12 Linux-Spike**. Der **X11-Teil ist gemessen**
+(elite, 2026-11-21: `XGrabKey`, `_NET_ACTIVE_WINDOW`, XTEST, Zwischenablage,
+Tray, Audio). Offen sind die Wayland-Fragen 2 (Erst-Einwilligung des Portals über
+einen Neustart), 3 (Injection in GTK/Writer/Brave) und 5/7 auf GNOME. #19
+(Provisioning auf claw) ist erledigt; parallel zu den Spikes laufen #4, #5 und
+#10.
