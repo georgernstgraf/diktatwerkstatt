@@ -1,5 +1,24 @@
 # Persistenz-Log
 
+## 2026-11-21 — Audio, Gerätewechsel und Win+V-Ausschluss gemessen (#1)
+
+* **Messung**: Audio über `cpal`/WASAPI auf dem Windows-Laptop, 48 kHz stereo F32 →
+  16 kHz mono s16le: 30 s mit 1 453 920 statt 1 454 426 Frames (−0,035 %), 3 029
+  Callbacks, größte Lücke 15,41 ms, Spitze −27,3 dBFS — **kein Aussetzer**.
+  **Gerätewechsel**: USB-Headset während der Aufnahme → Stream invalidiert
+  (`The stream configuration is no longer valid and must be rebuilt.`), Frames
+  brechen nach 3,4 s von 30 s ab, Standardgerät flattert. Die Aufnahme überlebt
+  den Wechsel **nicht**, sie endet mit meldbarem Fehler; ohne Behandlung endet sie
+  still. **Win+V**: mit eingeschalteter History und `GetHistoryItemsAsync` geprüft —
+  Text ohne Marker erscheint, Text mit Markern nicht.
+* **Update**: [PITFALLS.md](PITFALLS.md) — Abschnitt Windows um `cpal`-Dauerlauf,
+  Stream-Invalidierung beim Gerätewechsel und die belegte Marker-Wirkung ergänzt.
+  [HANDOFF.md](HANDOFF.md) — #1-Tabelle auf „alles gemessen außer Linux-Build und
+  VM-Gegenprobe".
+* **Nebenbefund**: der Task Scheduler ließ den SYSTEM-Task in `Queued` hängen; der
+  Weg in die Nutzersitzung war ein kurzlebiger Dienst unter `LocalSystem`
+  (`CreateProcessAsUser` scheitert am fehlenden `SeTcbPrivilege` des Admin-Tokens).
+
 ## 2026-11-21 — Windows-Spike: Word, Hotkeys, Tray, Sitzungsgrenzen gemessen (#1)
 
 * **Messung**: Wegwerf-Crate auf dem Windows-11-Laptop (`windows` 0.62.2),

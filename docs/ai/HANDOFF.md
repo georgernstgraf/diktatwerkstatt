@@ -3,7 +3,7 @@ type: Handoff
 title: Übergabe
 description: Was die nächste Sitzung zuerst tut, in welcher Reihenfolge, und was schon bekannt ist.
 tags: [wissensbasis, handoff]
-generated: { by: opencode/general, at: 2026-11-21T03:01:43Z }
+generated: { by: opencode/general, at: 2026-11-21T03:22:15Z }
 status: stable
 ---
 
@@ -112,11 +112,15 @@ Audio ist gemessen:
 | Baustein | Stand |
 |---|---|
 | Zwischenablage | **grün** — `CF_HTML` mit Byte-Offsets, Umlaute, Marker; in Word echte Überschriften und echte Aufzählung |
+| Win+V-Ausschluss | **grün** — Text mit Markern erscheint nicht in der History, ohne Marker schon (WinRT `GetHistoryItemsAsync`, History dafür kurz ein- und wieder ausgeschaltet) |
 | Hotkeys (ohne Hook) | **grün** — `RegisterHotKey`, 3 registriert, 3 ausgelöst; `Ctrl+Alt+F11/F12` sind fremdbelegt (1409) |
 | Tray | **grün** — `NIM_ADD`/`GetRect`/`NIM_MODIFY`/`NIM_DELETE` |
 | Textinjektion | **grün** — `SendInput` + `KEYEVENTF_UNICODE`, Emoji als Surrogatpaar, zeichengleich |
-| Audio | **offen** — `cpal` 30 s und Gerätewechsel brauchen die VM auf think oder ein Mikrofon im Zugriff |
-| Win+V-Ausschluss | **offen** — History ist aus; Marker liegen an, Wirkung ungeprüft |
+| Audio 30 s | **grün** — 48 kHz stereo → 16 kHz mono s16le, −0,035 % Frames, größte Lücke 15 ms |
+| Gerätewechsel | **gemessen, negativ** — Anstecken invalidiert den Stream (`must be rebuilt`), Frames brechen nach 3,4 s ab; die Schale muss neu aufbauen |
+
+Offen bleibt nur der Linux-Build des Crates (Windows-Abhängigkeiten) und die
+Gegenprobe in der VM auf think.
 
 Zwei Befunde betreffen die Architektur: die **Zwischenablage ist
 sitzungsgetrennt** (Session 0 kann nicht in die Nutzersitzung schreiben), und

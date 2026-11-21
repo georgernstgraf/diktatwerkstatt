@@ -3,7 +3,7 @@ type: Reference
 title: Fallstricke
 description: Hart erarbeitete Fallen aus Audio, STT, Textübergabe, Bedienung und den drei Plattformen — nicht neu entdecken.
 tags: [referenz, fallstricke]
-generated: { by: opencode/general, at: 2026-11-21T03:01:43Z }
+generated: { by: opencode/general, at: 2026-11-21T03:22:15Z }
 status: stable
 sources:
   - id: whisper-silence
@@ -172,6 +172,22 @@ einem Wegwerf-Crate (`windows` 0.62.2, Rust 1.100.0).
   Rechteck im Infobereich, `NIM_MODIFY` wechselt das Icon, `NIM_DELETE` → 1 und
   danach kein Rechteck mehr. `GetRect` ist der programmatische Beweis, dass das
   Symbol wirklich im Infobereich liegt — ein Screenshot wäre keiner.
+- **`cpal` über WASAPI hält 30 s ohne Aussetzer.** 48 000 Hz stereo F32, auf
+  16 kHz mono s16le gebracht: 1 453 920 Frames gegen 1 454 426 erwartete
+  (−0,035 %, also 10 ms auf 30 s), 3 029 Callbacks, größte Lücke **15,41 ms**,
+  Spitze −27,3 dBFS bei Sprache. Die Abweichung liegt unter einer
+  Callback-Periode; das ist Puffer-Rest, kein Aussetzer.
+- **Ein Gerätewechsel invalidiert den offenen Stream.** USB-Headset anstecken
+  während der Aufnahme → `The stream configuration is no longer valid and must be
+  rebuilt.`, der Fehler-Callback feuert, die Frames brechen ab (3,4 s von 30 s,
+  größte Lücke 252 ms), und das Standardgerät flattert zwischen Realtek und dem
+  Headset. Die Aufnahme **überlebt nicht** — sie endet mit einem meldbaren Fehler.
+  Die Schale muss den Fehler abfangen und den Stream neu aufbauen; ohne das endet
+  die Aufnahme still, weil der Aufrufer weiterläuft und keine Frames mehr bekommt.
+- **Die drei Marker wirken gegen Win+V** (gemessen mit eingeschalteter History und
+  der WinRT-API `GetHistoryItemsAsync`): Text **ohne** Marker erscheint in der
+  History, Text **mit** Markern nicht. Die Marker bleiben dabei als Formate in der
+  Zwischenablage stehen; Windows wertet sie beim Aufnehmen in die History aus.
 
 ## Linux und Wayland
 
